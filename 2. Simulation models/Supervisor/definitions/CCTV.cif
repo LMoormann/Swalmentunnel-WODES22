@@ -1,0 +1,38 @@
+import "Sensor.cif";
+
+group def CCTV():
+
+  plant Schouwen:
+    controllable c_schouwen, c_schouwenHuidig, c_stop;
+    location uit:
+      initial; marked;
+      edge c_schouwen goto schouwen;
+      edge c_schouwenHuidig goto schouwenHuidig;
+    location schouwen:
+      edge c_stop goto uit;
+    location schouwenHuidig:
+      edge c_stop goto uit;
+  end
+
+  plant Richting:
+    controllable c_mee, c_tegen;
+    location mee:
+      initial; marked;
+      edge c_tegen goto tegen;
+    location tegen:
+      edge c_mee goto mee;
+  end
+
+  plant Selectie:
+    controllable c_rechts, c_links, c_klaar;
+    location geen:
+      initial; marked;
+      edge c_rechts goto rechts;
+      edge c_links goto links;
+    location rechts:
+      edge c_klaar goto geen;
+    location links:
+      edge c_klaar goto geen;
+  end
+
+end

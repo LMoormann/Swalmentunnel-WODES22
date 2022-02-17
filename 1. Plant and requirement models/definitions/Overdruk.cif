@@ -1,0 +1,13 @@
+plant def Overdruk():
+    controllable c_uit, c_links, c_rechts;
+    location uit:
+        initial; marked;
+        edge c_links  goto links;
+        edge c_rechts goto rechts;
+    location links:
+        edge c_uit    goto uit;
+        edge c_rechts goto rechts;
+    location rechts:
+        edge c_uit    goto uit;
+        edge c_links  goto links;
+  end

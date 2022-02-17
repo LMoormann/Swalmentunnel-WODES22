@@ -1,0 +1,560 @@
+import "../Supervisor/Supervisor.cif", "Dropdown.cif", "GUI_Timer.cif";
+
+group GUI:
+  svgfile "GUI.svg";
+
+  group GUI_Overzichtsplattegrond:
+    group StandVerkeersbuis1:
+      svgout id "OverzichtsplattegrondVerkeersbuis1Stand" attr "fill" value if VB1.Stand.operationeel: "grey" elif VB1.Stand.standby: "#ffcc00" elif VB1.Stand.calamiteit: "#d26900" elif VB1.Stand.evacuatie: "#d26900" elif VB1.Stand.herstel: "#66cc99" elif VB1.Stand.ondersteunend: "#d09556" elif VB1.Stand.onderhoud: "#339966" else "grey" end;
+      svgout id "OverzichtsplattegrondVerkeersbuis1StandDriehoek" attr "fill" value if VB1.Stand.operationeel: "grey" elif VB1.Stand.standby: "#ffcc00" elif VB1.Stand.calamiteit: "#d26900" elif VB1.Stand.evacuatie: "#d26900" elif VB1.Stand.herstel: "#66cc99" elif VB1.Stand.ondersteunend: "#d09556" elif VB1.Stand.onderhoud: "#339966" else "grey" end;
+    end
+    group Afsluitboom1:
+      svgout id "OverzichtsplattegrondAfsluitboomDicht1" attr "opacity" value if VB1.AB.Stand.neer: "1" elif VB1.AB.Beweging.neer: ".5" else "0" end;
+      svgout id "OverzichtsplattegrondAfsluitboomOpen1" attr "opacity" value if VB1.AB.Stand.op: "1" else "0" end;
+    end
+    group Verkeerslicht1:
+      svgout id "OverzichtsplattegrondVerkeerslichtAchtergrond1" attr "opacity" value if VB1.VRI.Stand.uit: ".5" else "1" end;
+      svgout id "OverzichtsplattegrondVerkeerslicht1CircleRed" attr "opacity" value if VB1.VRI.Stand.rood: "1" else "0" end;
+      svgout id "OverzichtsplattegrondVerkeerslicht1CircleYellow" attr "opacity" value if VB1.VRI.Stand.geel or VB1.VRI.Stand.knipper: "1" else "0" end;
+    end
+    group StandVerkeersbuis2:
+      svgout id "OverzichtsplattegrondVerkeersbuis2Stand" attr "fill" value if VB2.Stand.operationeel: "grey" elif VB2.Stand.standby: "#ffcc00" elif VB2.Stand.calamiteit: "#d26900" elif VB2.Stand.evacuatie: "#d26900" elif VB2.Stand.herstel: "#66cc99" elif VB2.Stand.ondersteunend: "#d09556" elif VB2.Stand.onderhoud: "#339966" else "grey" end;
+      svgout id "OverzichtsplattegrondVerkeersbuis2StandDriehoek" attr "fill" value if VB2.Stand.operationeel: "grey" elif VB2.Stand.standby: "#ffcc00" elif VB2.Stand.calamiteit: "#d26900" elif VB2.Stand.evacuatie: "#d26900" elif VB2.Stand.herstel: "#66cc99" elif VB2.Stand.ondersteunend: "#d09556" elif VB2.Stand.onderhoud: "#339966" else "grey" end;
+    end
+    group Afsluitboom2:
+      svgout id "OverzichtsplattegrondAfsluitboomDicht2" attr "opacity" value if VB2.AB.Stand.neer: "1" elif VB2.AB.Beweging.neer: ".5" else "0" end;
+      svgout id "OverzichtsplattegrondAfsluitboomOpen2" attr "opacity" value if VB2.AB.Stand.op: "1" else "0" end;
+    end
+    group Verkeerslicht2:
+      svgout id "OverzichtsplattegrondVerkeerslichtAchtergrond2" attr "opacity" value if VB2.VRI.Stand.uit: ".5" else "1" end;
+      svgout id "OverzichtsplattegrondVerkeerslicht2CircleRed" attr "opacity" value if VB2.VRI.Stand.rood: "1" else "0" end;
+      svgout id "OverzichtsplattegrondVerkeerslicht2CircleYellow" attr "opacity" value if VB2.VRI.Stand.geel or VB2.VRI.Stand.knipper: "1" else "0" end;
+    end
+    group StandMiddentunnelkanaal:
+      svgout id "OverzichtsplattegrondMiddentunnelkanaal1Achtergrond" attr "fill" value if VB1.Stand.operationeel and VB2.Stand.operationeel: "grey" elif VB1.Stand.calamiteit or VB2.Stand.calamiteit: "#ffcc00" elif VB1.Stand.evacuatie or VB2.Stand.evacuatie: "#d26900" elif VB1.Stand.onderhoud and VB2.Stand.onderhoud: "#d09556" else "grey" end;
+    end
+  end
+
+  group GUI_SystemenSelectie:
+
+    group Ventilatie:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstBuisVentilatie" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstBuisVentilatieAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstVentilatie" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group Verlichting:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstBuisVerlichting" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstBuisVerlichtingAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstVerlichting" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group Geluidsbaken:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVluchtrouteVerlichting" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVluchtrouteVerlichtingAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstMTKVerlichting" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group DynamischeVluchtrouteIndicatie:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVluchtrouteIndicatie" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVluchtrouteIndicatieAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstDVI" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group Overdruk:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVluchtrouteOverdruk" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVluchtrouteOverdrukAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstOverdruk" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group MTKVerlichting:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVluchtrouteGeluidsbakens" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVluchtrouteGeluidsbakensAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstGeluidsbaken" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group Blusvoorziening:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstTunnelBlusvoorziening" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstTunnelBlusvoorzieningAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstBlusvoorziening" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group Vloeistofafvoer:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstTunnelVloeistofafvoer" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstTunnelVloeistofafvoerAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstVloeistofafvoer" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group OmroepHF:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstTunnelOmroepHF" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstMTKOmroep" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+      svgout id "SystemenlijstTunnelOmroepHFAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstOmroepHF" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+//       svgout id "SystemenlijstHF" attr "visibility" value if (Dropdown.open and GUI_Systemenlijst.TabbladVB.B1 and VB1.OmroepHFStand.HF) or (Dropdown.open and GUI_Systemenlijst.TabbladVB.B2 and VB2.OmroepHFStand.HF): "visible" else "hidden" end;
+//       svgout id "SystemenlijstOmroep" attr "visibility" value if (Dropdown.open and GUI_Systemenlijst.TabbladVB.B1 and VB1.OmroepHFStand.omroep) or (Dropdown.open and GUI_Systemenlijst.TabbladVB.B2 and VB2.OmroepHFStand.omroep): "visible" else "hidden" end;
+      svgout id "SystemenlijstHF" attr "visibility" value "hidden"; // Weghalen als HF is toegevoegd
+      svgout id "SystemenlijstOmroep" attr "visibility" value "hidden"; // Weghalen als Omroep is toegevoegd
+    end
+
+    group VRIafsluitbomen:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVerkeerVRI_Afsluitboom" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVerkeerVRI_AfsluitboomAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstVRI_en_Afsluitboom" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group CaDo:
+      Dropdown: ^Dropdown();
+      svgin id "SystemenlijstVerkeerCaDo" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "SystemenlijstVerkeerCaDoAchtergrond" attr "fill" value if Dropdown.dicht: "black" else "yellow" end;
+      svgout id "SystemenlijstCaDo" attr "visibility" value if Dropdown.dicht: "hidden" else "visible" end;
+    end
+
+    group HoogteDetectie:
+      svgout id "Reset_RHD" attr "fill" value if (VB1.HoogteDetectieRood.Lampen.aan and VB1.HoogteDetectieRood.Timer.afgelopen): "green" elif VB1.HoogteDetectieRood.Lampen.aan: "red" else "grey" end;
+      svgin id "Knop_Reset_RHD" event VB1.KnoppenVBafsluiter.u_resetHD;
+    end
+
+  end
+
+  group GUI_PrimaireBediening:
+    group StandVB1:
+      Dropdown: ^Dropdown();
+      svgout id "TekstStandPrimair1" text value if VB1.Stand.operationeel: "Operationeel" elif VB1.Stand.standby: "Standby" elif VB1.Stand.calamiteit: "Calamiteit" elif VB1.Stand.evacuatie: "Evacuatie" elif VB1.Stand.herstel: "Herstel" elif VB1.Stand.ondersteunend: "Ondersteunend" elif VB1.Stand.onderhoud: "Onderhoud" else "" end;
+      svgin id "StandPrimair1" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgin id "KnopPrimairStandVerkeersbuis1DropdownMenuOperationeel" event VB1Knoppen.KnopOperationeel.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis1DropdownMenuCalamiteit" event VB1Knoppen.KnopCalamiteit.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis1DropdownMenuEvacuatie" event VB1Knoppen.KnopEvacuatie.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis1DropdownMenuHerstel" event VB1Knoppen.KnopHerstel.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis1DropdownMenuOnderhoud" event VB1Knoppen.KnopOnderhoud.u_indrukken;
+      svgin id "KnopPrimairCalamiteitVerkeersbuis1" event VB1Knoppen.KnopCalamiteit.u_indrukken;
+      svgout id "KnopPrimairStandVerkeersbuis1DropdownMenu" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairCalamiteitVerkeersbuis1Achtergrond" attr "fill" value if VB1.Stand.calamiteit or VB1.Stand.evacuatie: "#FFCC00" else "#f2f2f2" end;
+
+      svgout id "calamiteit_buis_1" attr "visibility" value if VB1.PopUp.Venster.aan: "visible" else "hidden" end;
+      svgin id "calamiteit_buis_1_ok" event VB1Knoppen.KnopBevestigen.u_indrukken;
+      svgin id "calamiteit_buis_1_afbreken" event VB1Knoppen.KnopAfwijzen.u_indrukken;
+      Timer: GUI_Timer(VB1.PopUp.Timer.c_aan, VB1.PopUp.Timer.c_resetLopend, VB1.PopUp.Timer.c_resetAfgelopen, VB1.PopUp.Timer.u_timeout, 30);
+      svgout id "calamiteit_buis_1_timer" text value fmt("%.1f", Timer.t);
+    end
+    group CameraSelectieVB1:
+      Dropdown: ^Dropdown();
+      svgin id "KnopPrimairKijkVerkeersbuis1Dropdown" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "DropdownSchouwenVB1" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairKijkVerkeersbuis1AchtergrondKnop" attr "fill" value if not VB1.CCTV.Schouwen.uit: "#FFCC00" else "#f2f2f2" end;
+
+      svgin id "KnopSchouwenStopVB1" event VB1.KnoppenCCTV.u_schouwenStop;
+      svgin id "KnopSchouwenVB1" event VB1.KnoppenCCTV.u_schouwen;
+      svgin id "KnopPrimairKijkVerkeersbuis1Knop" event VB1.KnoppenCCTV.u_schouwen;
+      svgin id "KnopSchouwenEindeVB1" event VB1.KnoppenCCTV.u_shouwenTegen;
+      svgin id "KnopSchouwenHuidigVB1" event VB1.KnoppenCCTV.u_schouwenHuidig;
+      svgin id "KnopSchouwenHuidigTegenVB1" event VB1.KnoppenCCTV.u_schouwenHuidigTegen;
+      svgin id "KnopPrimairCamerasRechtsVerkeersbuis1" event VB1.KnoppenCCTV.u_rechts;
+      svgin id "KnopPrimairCamerasLinksVerkeersbuis1" event VB1.KnoppenCCTV.u_links;
+    end
+    group KnopVerkeersbuis1:
+      svgin id "KnopPrimairDichtVerkeersbuis1" event VB1.KnoppenVBafsluiter.u_primairVBdicht;
+      svgout id "KnopPrimairDichtVerkeersbuis1Achtergrond" attr "fill" value if VB1.PrimairVRI.rood and VB1.PrimairAB.dicht: "#FFCC00" else "#f2f2f2" end;
+      svgin id "KnopPrimairOpenVerkeersbuis1" event VB1.KnoppenVBafsluiter.u_primairVBopen;
+      svgout id "KnopPrimairOpenVerkeersbuis1Achtergrond" attr "fill" value if VB1.PrimairVRI.uit and VB1.PrimairAB.open: "#FFCC00" else "#f2f2f2" end;
+//       svgout id "TekstOpenPrimair1" text value if VB1.VRI.Stand.rood and VB1.AB1.Stand.neer and VB1.AB2.Stand.neer: "Dicht" else "Open" end;
+    end
+    group KnopVerkeerslicht1:
+      Dropdown: ^Dropdown();
+      svgin id "KnopPrimairRoodVerkeersbuis1Knop" event VB1.KnoppenVBafsluiter.u_primairVRIrood;
+      svgin id "KnopPrimairRoodVerkeersbuis1Dropdown" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgin id "KnopPrimairRoodVerkeersbuis1DropdownMenuRood" event VB1.KnoppenVBafsluiter.u_primairVRIrood;
+      svgin id "KnopPrimairRoodVerkeersbuis1DropdownMenuUit" event VB1.KnoppenVBafsluiter.u_primairVRIuit;
+      svgout id "KnopPrimairRoodVerkeersbuis1DropdownMenu" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairRoodVerkeersbuis1AchtergrondKnop" attr "fill" value if VB1.PrimairVRI.rood: "#FFCC00" else "#f2f2f2" end;
+    end
+    group StandVB2:
+      Dropdown: ^Dropdown();
+      svgout id "TekstStandPrimair2" text value if VB2.Stand.operationeel: "Operationeel" elif VB2.Stand.standby: "Standby" elif VB2.Stand.calamiteit: "Calamiteit" elif VB2.Stand.evacuatie: "Evacuatie" elif VB2.Stand.herstel: "Herstel" elif VB2.Stand.ondersteunend: "Ondersteunend" elif VB2.Stand.onderhoud: "Onderhoud" else "" end;
+      svgin id "StandPrimair2" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgin id "KnopPrimairStandVerkeersbuis2DropdownMenuOperationeel" event VB2Knoppen.KnopOperationeel.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis2DropdownMenuCalamiteit" event VB2Knoppen.KnopCalamiteit.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis2DropdownMenuEvacuatie" event VB2Knoppen.KnopEvacuatie.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis2DropdownMenuHerstel" event VB2Knoppen.KnopHerstel.u_indrukken;
+      svgin id "KnopPrimairStandVerkeersbuis2DropdownMenuOnderhoud" event VB2Knoppen.KnopOnderhoud.u_indrukken;
+      svgin id "KnopPrimairCalamiteitVerkeersbuis2" event VB2Knoppen.KnopCalamiteit.u_indrukken;
+      svgout id "KnopPrimairStandVerkeersbuis2DropdownMenu" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairCalamiteitVerkeersbuis2Achtergrond" attr "fill" value if VB2.Stand.calamiteit or VB2.Stand.evacuatie: "#FFCC00" else "#f2f2f2" end;
+
+      svgout id "calamiteit_buis_2" attr "visibility" value if VB2.PopUp.Venster.aan: "visible" else "hidden" end;
+      svgin id "calamiteit_buis_2_ok" event VB2Knoppen.KnopBevestigen.u_indrukken;
+      svgin id "calamiteit_buis_2_afbreken" event VB2Knoppen.KnopAfwijzen.u_indrukken;
+      Timer: GUI_Timer(VB2.PopUp.Timer.c_aan, VB2.PopUp.Timer.c_resetLopend, VB2.PopUp.Timer.c_resetAfgelopen, VB2.PopUp.Timer.u_timeout, 30);
+      svgout id "calamiteit_buis_2_timer" text value fmt("%.1f", Timer.t);
+    end
+    group CameraSelectieVB2:
+      Dropdown: ^Dropdown();
+      svgin id "KnopPrimairKijkVerkeersbuis2Dropdown" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgout id "DropdownSchouwenVB2" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairKijkVerkeersbuis2AchtergrondKnop" attr "fill" value if not VB2.CCTV.Schouwen.uit: "#FFCC00" else "#f2f2f2" end;
+
+      svgin id "KnopSchouwenStopVB2" event VB2.KnoppenCCTV.u_schouwenStop;
+      svgin id "KnopSchouwenVB2" event VB2.KnoppenCCTV.u_schouwen;
+      svgin id "KnopPrimairKijkVerkeersbuis2Knop" event VB2.KnoppenCCTV.u_schouwen;
+      svgin id "KnopSchouwenEindeVB2" event VB2.KnoppenCCTV.u_shouwenTegen;
+      svgin id "KnopSchouwenHuidigVB2" event VB2.KnoppenCCTV.u_schouwenHuidig;
+      svgin id "KnopSchouwenHuidigTegenVB2" event VB2.KnoppenCCTV.u_schouwenHuidigTegen;
+      svgin id "KnopPrimairCamerasRechtsVerkeersbuis2" event VB2.KnoppenCCTV.u_rechts;
+      svgin id "KnopPrimairCamerasLinksVerkeersbuis2" event VB2.KnoppenCCTV.u_links;
+    end
+    group KnopVerkeersbuis2:
+      svgin id "KnopPrimairDichtVerkeersbuis2" event VB2.KnoppenVBafsluiter.u_primairVBdicht;
+      svgout id "KnopPrimairDichtVerkeersbuis2Achtergrond" attr "fill" value if VB2.PrimairVRI.rood and VB2.PrimairAB.dicht: "#FFCC00" else "#f2f2f2" end;
+      svgin id "KnopPrimairOpenVerkeersbuis2" event VB2.KnoppenVBafsluiter.u_primairVBopen;
+      svgout id "KnopPrimairOpenVerkeersbuis2Achtergrond" attr "fill" value if VB2.PrimairVRI.uit and VB2.PrimairAB.open: "#FFCC00" else "#f2f2f2" end;
+//       svgout id "TekstOpenPrimair2" text value if VB2.VRI.Stand.rood and VB2.AB2.Stand.neer and VB2.AB2.Stand.neer: "Dicht" else "Open" end;
+    end
+    group KnopVerkeerslicht2:
+      Dropdown: ^Dropdown();
+      svgin id "KnopPrimairRoodVerkeersbuis2Knop" event VB2.KnoppenVBafsluiter.u_primairVRIrood;
+      svgin id "KnopPrimairRoodVerkeersbuis2Dropdown" event if Dropdown.dicht: Dropdown.e_open else Dropdown.e_sluit end;
+      svgin id "KnopPrimairRoodVerkeersbuis2DropdownMenuRood" event VB2.KnoppenVBafsluiter.u_primairVRIrood;
+      svgin id "KnopPrimairRoodVerkeersbuis2DropdownMenuUit" event VB2.KnoppenVBafsluiter.u_primairVRIuit;
+      svgout id "KnopPrimairRoodVerkeersbuis2DropdownMenu" attr "visibility" value if Dropdown.open: "visible" else "hidden" end;
+      svgout id "KnopPrimairRoodVerkeersbuis2AchtergrondKnop" attr "fill" value if VB2.PrimairVRI.rood: "#FFCC00" else "#f2f2f2" end;
+    end
+  end
+
+	group GUI_Systemenlijst:
+
+    plant dummy:
+      event e_dummy;
+      location:
+        initial; marked;
+        edge e_dummy;
+    end
+    plant TabbladVB:
+      event e_Buis1, e_Buis2;
+      monitor;
+      location B1:
+        initial;
+        edge e_Buis2 goto B2;
+      location B2:
+        edge e_Buis1 goto B1;
+    end
+    svgin id "TabbladVerkeersbuis1" event TabbladVB.e_Buis1;
+    svgout id "TabbladVerkeersbuis1Achtergrond" attr "stroke" value if TabbladVB.B1: "white" else "black" end;
+    svgin id "TabbladVerkeersbuis2" event TabbladVB.e_Buis2;
+    svgout id "TabbladVerkeersbuis2Achtergrond" attr "stroke" value if TabbladVB.B2: "white" else "black" end;
+
+    group Ventilatie:
+      svgin id "SystemenVentilatieHandKnop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_hand else VB2.Ventilatie.Knoppen.u_hand end;
+      svgout id "SystemenVentilatieHand" attr "fill" value if (VB1.Ventilatie.Bediening.hand and TabbladVB.B1) or (VB2.Ventilatie.Bediening.hand and TabbladVB.B2): "gold" else "grey" end;
+      svgin id "SystemenVentilatieAutoKnop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_auto else VB2.Ventilatie.Knoppen.u_auto end;
+      svgout id "SystemenVentilatieAuto" attr "fill" value if (VB1.Ventilatie.Bediening.auto and TabbladVB.B1) or (VB2.Ventilatie.Bediening.auto and TabbladVB.B2): "gold" else "grey" end;
+
+      svgin id "SystemenVentilatieRichtingTegenKnop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_tegenRijrichting else VB2.Ventilatie.Knoppen.u_tegenRijrichting end;
+      svgout id "SystemenVentilatieRichtingTegen" attr "fill" value if (VB1.Ventilatie.Richting.tegenRijrichting and TabbladVB.B1) or (VB2.Ventilatie.Richting.tegenRijrichting and TabbladVB.B2): "gold" else "grey" end;
+      svgin id "SystemenVentilatieRichtingMeeKnop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_rijrichting else VB2.Ventilatie.Knoppen.u_rijrichting end;
+      svgout id "SystemenVentilatieRichtingMee" attr "fill" value if (VB1.Ventilatie.Richting.rijrichting and TabbladVB.B1) or (VB2.Ventilatie.Richting.rijrichting and TabbladVB.B2): "gold" else "grey" end;
+
+      svgout id "SystemenVentilatieStand0" attr "fill" value if (VB1.Ventilatie.Stand.s0 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s0 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand1" attr "fill" value if (VB1.Ventilatie.Stand.s1 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s1 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand2" attr "fill" value if (VB1.Ventilatie.Stand.s2 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s2 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand3" attr "fill" value if (VB1.Ventilatie.Stand.s3 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s3 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand4" attr "fill" value if (VB1.Ventilatie.Stand.s4 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s4 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand5" attr "fill" value if (VB1.Ventilatie.Stand.s5 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s5 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand6" attr "fill" value if (VB1.Ventilatie.Stand.s6 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s6 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand7" attr "fill" value if (VB1.Ventilatie.Stand.s7 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s7 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVentilatieStand8" attr "fill" value if (VB1.Ventilatie.Stand.s8 and TabbladVB.B1) or (VB2.Ventilatie.Stand.s8 and TabbladVB.B2): "gold" else "grey" end;
+
+      svgin id "SystemenVentilatieStand0Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_0 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_0 end;
+      svgin id "SystemenVentilatieStand1Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_1 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_1 end;
+      svgin id "SystemenVentilatieStand2Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_2 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_2 end;
+      svgin id "SystemenVentilatieStand3Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_3 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_3 end;
+      svgin id "SystemenVentilatieStand4Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_4 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_4 end;
+      svgin id "SystemenVentilatieStand5Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_5 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_5 end;
+      svgin id "SystemenVentilatieStand6Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_6 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_6 end;
+      svgin id "SystemenVentilatieStand7Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_7 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_7 end;
+      svgin id "SystemenVentilatieStand8Knop" event if TabbladVB.B1: VB1.Ventilatie.Knoppen.u_8 elif TabbladVB.B2: VB2.Ventilatie.Knoppen.u_8 end;
+    end
+
+    group Verlichting:
+      svgin id "SystemenVerlichtingHandKnop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_hand else VB2.Verlichting.Knoppen.u_hand end;
+      svgout id "SystemenVerlichtingHand" attr "fill" value if (VB1.Verlichting.Bediening.hand and TabbladVB.B1) or (VB2.Verlichting.Bediening.hand and TabbladVB.B2): "gold" else "grey" end;
+      svgin id "SystemenVerlichtingAutoKnop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_auto else VB2.Verlichting.Knoppen.u_auto end;
+      svgout id "SystemenVerlichtingAuto" attr "fill" value if (VB1.Verlichting.Bediening.auto and TabbladVB.B1) or (VB2.Verlichting.Bediening.auto and TabbladVB.B2): "gold" else "grey" end;
+
+      svgout id "SystemenVerlichtingStand0" attr "fill" value if (VB1.Verlichting.Stand.s0 and TabbladVB.B1) or (VB2.Verlichting.Stand.s0 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand1" attr "fill" value if (VB1.Verlichting.Stand.s1 and TabbladVB.B1) or (VB2.Verlichting.Stand.s1 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand2" attr "fill" value if (VB1.Verlichting.Stand.s2 and TabbladVB.B1) or (VB2.Verlichting.Stand.s2 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand3" attr "fill" value if (VB1.Verlichting.Stand.s3 and TabbladVB.B1) or (VB2.Verlichting.Stand.s3 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand4" attr "fill" value if (VB1.Verlichting.Stand.s4 and TabbladVB.B1) or (VB2.Verlichting.Stand.s4 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand5" attr "fill" value if (VB1.Verlichting.Stand.s5 and TabbladVB.B1) or (VB2.Verlichting.Stand.s5 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand6" attr "fill" value if (VB1.Verlichting.Stand.s6 and TabbladVB.B1) or (VB2.Verlichting.Stand.s6 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand7" attr "fill" value if (VB1.Verlichting.Stand.s7 and TabbladVB.B1) or (VB2.Verlichting.Stand.s7 and TabbladVB.B2): "gold" else "grey" end;
+      svgout id "SystemenVerlichtingStand8" attr "fill" value if (VB1.Verlichting.Stand.s8 and TabbladVB.B1) or (VB2.Verlichting.Stand.s8 and TabbladVB.B2): "gold" else "grey" end;
+
+      svgin id "SystemenVerlichtingStand0Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_0
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_0 end;
+      svgin id "SystemenVerlichtingStand1Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_1
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_1 end;
+      svgin id "SystemenVerlichtingStand2Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_2
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_2 end;
+      svgin id "SystemenVerlichtingStand3Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_3
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_3 end;
+      svgin id "SystemenVerlichtingStand4Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_4
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_4 end;
+      svgin id "SystemenVerlichtingStand5Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_5
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_5 end;
+      svgin id "SystemenVerlichtingStand6Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_6
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_6 end;
+      svgin id "SystemenVerlichtingStand7Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_7
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_7 end;
+      svgin id "SystemenVerlichtingStand8Knop" event if TabbladVB.B1: VB1.Verlichting.Knoppen.u_8
+                                                     elif TabbladVB.B2: VB2.Verlichting.Knoppen.u_8 end;
+    end
+
+    group GeluidsbakenCV:
+      svgin id "SystemenGeluidsbakenHandKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenGeluidsbaken.u_hand
+                                                  elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenGeluidsbaken.u_hand end;
+      svgout id "SystemenGeluidsbakenHand" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.BedieningGeluidsbaken.hand) or (TabbladVB.B2 and VB2.Vluchtdeur.BedieningGeluidsbaken.hand): "gold" else "grey" end;
+      svgin id "SystemenGeluidsbakenAutoKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenGeluidsbaken.u_auto
+                                                  elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenGeluidsbaken.u_auto end;
+      svgout id "SystemenGeluidsbakenAuto" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.BedieningGeluidsbaken.auto) or (TabbladVB.B2 and VB2.Vluchtdeur.BedieningGeluidsbaken.auto): "gold" else "grey" end;
+
+
+      svgin id "SystemenGeluidsbakenAanKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenGeluidsbaken.u_aan
+                                                 elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenGeluidsbaken.u_aan end;
+      svgout id "SystemenGeluidsbakenAan" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.Geluidsbaken.aan) or (TabbladVB.B2 and VB2.Vluchtdeur.Geluidsbaken.aan): "gold" else "grey" end;
+      svgin id "SystemenGeluidsbakenUitKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenGeluidsbaken.u_uit
+                                                 elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenGeluidsbaken.u_uit end;
+      svgout id "SystemenGeluidsbakenUit" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.Geluidsbaken.uit) or (TabbladVB.B2 and VB2.Vluchtdeur.Geluidsbaken.uit): "gold" else "grey" end;
+
+
+      svgin id "SystemenCVHandKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenContourVerlichting.u_hand
+                                        elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenContourVerlichting.u_hand end;
+      svgout id "SystemenCVHand" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.BedieningContourVerlichting.hand) or (TabbladVB.B2 and VB2.Vluchtdeur.BedieningContourVerlichting.hand): "gold" else "grey" end;
+      svgin id "SystemenCVAutoKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenContourVerlichting.u_auto
+                                        elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenContourVerlichting.u_auto end;
+      svgout id "SystemenCVAuto" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.BedieningContourVerlichting.auto) or (TabbladVB.B2 and VB2.Vluchtdeur.BedieningContourVerlichting.auto) : "gold" else "grey" end;
+
+
+      svgin id "SystemenCVAanKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenContourVerlichting.u_aan
+                                       elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenContourVerlichting.u_aan end;
+      svgout id "SystemenCVAan" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.ContourVerlichting.aan) or (TabbladVB.B2 and VB2.Vluchtdeur.ContourVerlichting.aan): "gold" else "grey" end;
+      svgin id "SystemenCVUitKnop" event if (TabbladVB.B1): VB1.Vluchtdeur.KnoppenContourVerlichting.u_uit
+                                       elif (TabbladVB.B2): VB2.Vluchtdeur.KnoppenContourVerlichting.u_uit end;
+      svgout id "SystemenCVUit" attr "fill" value if (TabbladVB.B1 and VB1.Vluchtdeur.ContourVerlichting.uit) or (TabbladVB.B2 and VB2.Vluchtdeur.ContourVerlichting.uit): "gold" else "grey" end;
+
+    end
+
+    group MTKVerlichting:
+        svgin id "SystemenMTKVerlichtingAutoKnop" event MTK.KnoppenVerlichting.u_auto;
+        svgout id "SystemenMTKVerlichtingAuto"attr "fill" value if MTK.BedieningVerlichting.auto: "gold" else "grey" end;
+        svgin id "SystemenMTKVerlichtingHandKnop" event MTK.KnoppenVerlichting.u_hand;
+        svgout id "SystemenMTKVerlichtingHand"attr "fill" value if MTK.BedieningVerlichting.hand: "gold" else "grey" end;
+
+        svgin id "SystemenMTKVerlichtingAanKnop" event MTK.KnoppenVerlichting.u_aan;
+        svgout id "SystemenMTKVerlichtingAan"attr "fill" value if MTK.Verlichting.aan: "gold" else "grey" end;
+        svgin id "SystemenMTKVerlichtingUitKnop" event MTK.KnoppenVerlichting.u_uit;
+        svgout id "SystemenMTKVerlichtingUit"attr "fill" value if MTK.Verlichting.uit: "gold" else "grey" end;
+    end
+
+    group Blusvoorziening:
+      svgin id "KnopBlusvoorzieningAuto" event BBI.Knoppen.u_auto;
+      svgout id "BlusvoorzieningAuto" attr "fill" value if BBI.Bediening.auto: "gold" else "grey" end;
+      svgin id "KnopBlusvoorzieningHand" event BBI.Knoppen.u_hand;
+      svgout id "BlusvoorzieningHand" attr "fill" value if BBI.Bediening.hand: "gold" else "grey" end;
+
+      svgin id "KnopBlusvoorzieningBewaken" event BBI.Knoppen.u_bewaken;
+      svgout id "BlusvoorzieningBewaken" attr "fill" value if BBI.Regime.bewaken: "gold" else "grey" end;
+      svgin id "KnopBlusvoorzieningBlussen" event BBI.Knoppen.u_blussen;
+      svgout id "BlusvoorzieningBlussen" attr "fill" value if BBI.Regime.blussen: "gold" else "grey" end;
+    end
+
+    group Vloeistofafvoer:
+      svgin id "KnopVloeistofafvoerSchoonAuto" event KelderSchoon.Knoppen.u_auto;
+      svgout id "VloeistofafvoerSchoonAuto" attr "fill" value if KelderSchoon.Bediening.auto: "gold" else "grey" end;
+      svgin id "KnopVloeistofafvoerSchoonHand" event KelderSchoon.Knoppen.u_hand;
+      svgout id "VloeistofafvoerSchoonHand" attr "fill" value if KelderSchoon.Bediening.hand: "gold" else "grey" end;
+
+      svgin id "KnopVloeistofafvoerSchoonUit" event KelderSchoon.Knoppen.u_uit;
+      svgout id "VloeistofafvoerSchoonUit" attr "fill" value if KelderSchoon.Regime.uit: "gold" else "grey" end;
+      svgin id "KnopVloeistofafvoerSchoonLeeghouden" event KelderSchoon.Knoppen.u_leeghouden;
+      svgout id "VloeistofafvoerSchoonLeeghouden" attr "fill" value if KelderSchoon.Regime.leeghouden: "gold" else "grey" end;
+      svgin id "KnopVloeistofafvoerSchoonBergen" event KelderSchoon.Knoppen.u_bergen;
+      svgout id "VloeistofafvoerSchoonBergen" attr "fill" value if KelderSchoon.Regime.bergen: "gold" else "grey" end;
+
+      svgin id "KnopVloeistofafvoerVuilAuto" event KelderVuil.Knoppen.u_auto;
+      svgout id "VloeistofafvoerVuilAuto" attr "fill" value if KelderVuil.Bediening.auto: "gold" else "grey" end;
+      svgin id "KnopVloeistofafvoerVuilHand" event KelderVuil.Knoppen.u_hand;
+      svgout id "VloeistofafvoerVuilHand" attr "fill" value if KelderVuil.Bediening.hand: "gold" else "grey" end;
+
+      svgin id "KnopVloeistofafvoerVuilUit" event KelderVuil.Knoppen.u_uit;
+      svgout id "VloeistofafvoerVuilUit" attr "fill" value if KelderVuil.Regime.uit: "gold" else "grey" end;
+      svgin id "KnopVloeistofafvoerVuilLozen" event KelderVuil.Knoppen.u_lozen;
+      svgout id "VloeistofafvoerVuilLozen" attr "fill" value if KelderVuil.Regime.lozen: "gold" else "grey" end;
+    end
+
+    group OmroepHF:
+//       svgin id "SystemenOmroepHFHFKnop" event if (TabbladVB.B1): VB1.KnopStandHF.Knop.u_indrukken
+//                                               else VB2.KnopStandHF.Knop.u_indrukken end;
+//       svgout id "SystemenOmroepHFHF" attr "fill" value if (TabbladVB.B1 and VB1.OmroepHFStand.HF) or (TabbladVB.B2 and VB2.OmroepHFStand.HF): "gold" else "grey" end;
+//       svgin id "SystemenOmroepHFOmroepKnop" event if (TabbladVB.B1): VB1.KnopStandOmroep.Knop.u_indrukken
+//                                               else VB2.KnopStandOmroep.Knop.u_indrukken end;
+//       svgout id "SystemenOmroepHFOmroep" attr "fill" value if (TabbladVB.B1 and VB1.OmroepHFStand.omroep) or (TabbladVB.B2 and VB2.OmroepHFStand.omroep): "gold" else "grey" end;
+
+//         svgin id "SystemenHFRadioKnop" event if (TabbladVB.B1 and VB1.OmroepHFStand.HF and not VB1.HF.Modus.radio): VB1.HF.Modus.c_radio
+//                                             elif (TabbladVB.B2 and VB2.OmroepHFStand.HF and not VB2.HF.Modus.radio): VB2.HF.Modus.c_radio
+//                                             else dummy.e_dummy end;
+//         svgout id "SystemenHFRadio" attr "fill" value if (TabbladVB.B1 and VB1.HF.Modus.radio) or (TabbladVB.B2 and VB2.HF.Modus.radio): "gold" else "grey" end;
+//         svgin id "SystemenHFBoodschapKnop" event if (TabbladVB.B1 and VB1.OmroepHFStand.HF and not VB1.HF.Modus.boodschap): VB1.HF.Modus.c_boodschap
+//                                             elif (TabbladVB.B2 and VB2.OmroepHFStand.HF and not VB2.HF.Modus.boodschap): VB2.HF.Modus.c_boodschap
+//                                             else dummy.e_dummy end;
+//         svgout id "SystemenHFBoodschap" attr "fill" value if (TabbladVB.B1 and VB1.HF.Modus.boodschap) or (TabbladVB.B2 and VB2.HF.Modus.boodschap): "gold" else "grey" end;
+//         svgin id "SystemenHFMuteKnop" event if (TabbladVB.B1 and VB1.OmroepHFStand.HF and not VB1.HF.Modus.mute): VB1.HF.Modus.c_mute
+//                                             elif (TabbladVB.B2 and VB2.OmroepHFStand.HF and not VB2.HF.Modus.mute): VB2.HF.Modus.c_mute
+//                                             else dummy.e_dummy end;
+//         svgout id "SystemenHFMute" attr "fill" value if (TabbladVB.B1 and VB1.HF.Modus.mute) or (TabbladVB.B2 and VB2.HF.Modus.mute): "gold" else "grey" end;
+//         svgin id "SystemenHFBoodschapStartKnop" event if (TabbladVB.B1 and VB1.OmroepHFStand.HF and VB1.HF.Modus.boodschap and VB1.HF.Boodschap.standby): VB1.HF.Boodschap.c_start
+//                                                     elif (TabbladVB.B2 and VB2.OmroepHFStand.HF and VB2.HF.Modus.boodschap and VB2.HF.Boodschap.standby): VB2.HF.Boodschap.c_start
+//                                                     else dummy.e_dummy end;
+//         svgout id "SystemenHFBoodschapStart" attr "fill" value if (TabbladVB.B1 and VB1.HF.Boodschap.afspelen) or (TabbladVB.B2 and VB2.HF.Boodschap.afspelen): "gold" else "grey" end;
+
+      svgin id "SystemenOmroepStartliveKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_startLive
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_startLive
+                                                   else dummy.e_dummy end;
+      svgout id "SystemenOmroepStartlive" attr "fill" value if (TabbladVB.B1 and VB1.Omroep.Modus.live) or (TabbladVB.B2 and VB2.Omroep.Modus.live): "red" else "grey" end;
+      svgin id "SystemenOmroepStopliveKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_stopLive
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_stopLive
+                                                   else dummy.e_dummy end;
+      svgin id "SystemenOmroepStartopgenomenKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_startBoodschap
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_startBoodschap
+                                                   else dummy.e_dummy end;
+      svgout id "SystemenOmroepStartopgenomen" attr "fill" value if (TabbladVB.B1 and VB1.Omroep.Modus.boodschap) or (TabbladVB.B2 and VB2.Omroep.Modus.boodschap): "red" else "grey" end;
+      svgin id "SystemenOmroepStopopgenomenKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_stopBoodschap
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_stopBoodschap
+                                                   else dummy.e_dummy end;
+      svgin id "SystemenOmroepBuisKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_buis
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_buis
+                                                   else dummy.e_dummy end;
+      svgout id "SystemenOmroepBuis" attr "fill" value if (TabbladVB.B1 and VB1.Omroep.Gebied.buis) or (TabbladVB.B2 and VB2.Omroep.Gebied.buis): "gold" else "grey" end;
+      svgin id "SystemenOmroepSectieKnop" event if (TabbladVB.B1): VB1.Omroep.Knoppen.u_sectie
+                                                   elif (TabbladVB.B2): VB2.Omroep.Knoppen.u_sectie
+                                                   else dummy.e_dummy end;
+      svgout id "SystemenOmroepSectie" attr "fill" value if (TabbladVB.B1 and VB1.Omroep.Gebied.sectie) or (TabbladVB.B2 and VB2.Omroep.Gebied.sectie): "gold" else "grey" end;
+
+    end
+
+    group Verkeerslicht:
+      svgin id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningAuto" event if TabbladVB.B1: VB1.KnoppenBedieningVRI.u_auto else VB2.KnoppenBedieningVRI.u_auto end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningAutoAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.BedieningVRI.auto) or (TabbladVB.B2 and VB2.BedieningVRI.auto): "gold" else "grey" end;
+      //svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningAutoTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.BedieningVerkeerslichten.Modus.auto) or (TabbladVB.B2 and Verkeersbuis2.BedieningVerkeerslichten.Modus.auto): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningHand" event if TabbladVB.B1: VB1.KnoppenBedieningVRI.u_hand else VB2.KnoppenBedieningVRI.u_hand end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningHandAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.BedieningVRI.hand) or (TabbladVB.B2 and VB2.BedieningVRI.hand): "gold" else "grey" end;
+//       svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenBedieningHandTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.BedieningVerkeerslichten.Modus.hand) or (TabbladVB.B2 and Verkeersbuis2.BedieningVerkeerslichten.Modus.hand): "black" else "white" end;
+//
+      svgin id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopRood" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_VRIrood else VB2.KnoppenVBafsluiter.u_VRIrood end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopRoodAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.VRI.Stand.rood) or (TabbladVB.B2 and VB2.VRI.Stand.rood): "gold" else "grey" end;
+//       svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopRoodTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.Verkeerslicht1.Stand.rood and Verkeersbuis1.Verkeerslicht2.Stand.rood) or (TabbladVB.B2 and Verkeersbuis2.Verkeerslicht1.Stand.rood and Verkeersbuis2.Verkeerslicht2.Stand.rood): "black" else "white" end;
+//
+      svgin id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopGeelKnipper" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_VRIknipper else VB2.KnoppenVBafsluiter.u_VRIknipper end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopGeelKnipperAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.VRI.Stand.knipper) or (TabbladVB.B2 and VB2.VRI.Stand.knipper): "gold" else "grey" end;
+//       svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopGeelTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.Verkeerslicht1.Stand.knipper and Verkeersbuis1.Verkeerslicht2.Stand.knipper) or (TabbladVB.B2 and Verkeersbuis2.Verkeerslicht1.Stand.knipper and Verkeersbuis2.Verkeerslicht2.Stand.knipper): "black" else "white" end;
+//       svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopKnipperTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.Verkeerslicht1.Stand.knipper and Verkeersbuis1.Verkeerslicht2.Stand.knipper) or (TabbladVB.B2 and Verkeersbuis2.Verkeerslicht1.Stand.knipper and Verkeersbuis2.Verkeerslicht2.Stand.knipper): "black" else "white" end;
+//
+      svgin id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopUit" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_VRIuit else VB2.KnoppenVBafsluiter.u_VRIuit end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopUitAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.VRI.Stand.uit) or (TabbladVB.B2 and VB2.VRI.Stand.uit): "gold" else "grey" end;
+//       svgout id "SystemenlijstVRI_en_AfsluitboomVerkeerslichtenKnopUitTekst" attr "fill" value if (TabbladVB.B1 and Verkeersbuis1.Verkeerslicht1.Stand.uit and Verkeersbuis1.Verkeerslicht2.Stand.uit) or (TabbladVB.B2 and Verkeersbuis2.Verkeerslicht1.Stand.uit and Verkeersbuis2.Verkeerslicht2.Stand.uit): "black" else "white" end;
+    end
+
+    group Afsluitboom:
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningAuto" event if TabbladVB.B1: VB1.KnoppenBedieningAB.u_auto else VB2.KnoppenBedieningAB.u_auto end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningAutoAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.BedieningAB.auto) or (TabbladVB.B2 and VB2.BedieningAB.auto): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningAutoTekst" attr "fill" value if (TabbladVB.B1 and VB1.BedieningAB.auto) or (TabbladVB.B2 and VB2.BedieningAB.auto): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningHand" event if TabbladVB.B1: VB1.KnoppenBedieningAB.u_hand else VB2.KnoppenBedieningAB.u_hand end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningHandAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.BedieningAB.hand) or (TabbladVB.B2 and VB2.BedieningAB.hand): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenBedieningHandTekst" attr "fill" value if (TabbladVB.B1 and VB1.BedieningAB.hand) or (TabbladVB.B2 and VB2.BedieningAB.hand): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopSluiten" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_ABsluit else VB2.KnoppenVBafsluiter.u_ABsluit end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopSluitenAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.neer) or (TabbladVB.B2 and VB2.AB.Beweging.neer): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopSluitenTekst" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.neer) or (TabbladVB.B2 and VB2.AB.Beweging.neer): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopStop" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_ABstop else VB2.KnoppenVBafsluiter.u_ABstop end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopStopAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.geen) or (TabbladVB.B2 and VB2.AB.Beweging.geen): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopStopTekst" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.geen) or (TabbladVB.B2 and VB2.AB.Beweging.geen): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOpenen" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_ABopen else VB2.KnoppenVBafsluiter.u_ABopen end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOpenenAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.op) or (TabbladVB.B2 and VB2.AB.Beweging.op): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOpenenTekst" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.op) or (TabbladVB.B2 and VB2.AB.Beweging.op): "black" else "white" end;
+
+      svgin id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOnvoorwSluiten" event if TabbladVB.B1: VB1.KnoppenVBafsluiter.u_ABsluitOnv else VB2.KnoppenVBafsluiter.u_ABsluitOnv end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOnvoorwSluitenAchtergrond" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.neer) or (TabbladVB.B2 and VB2.AB.Beweging.neer): "gold" else "grey" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOnvoorwSluitenTekst1" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.neer) or (TabbladVB.B2 and VB2.AB.Beweging.neer): "black" else "white" end;
+      svgout id "SystemenlijstVRI_en_AfsluitboomAfsluitbomenKnopOnvoorwSluitenTekst2" attr "fill" value if (TabbladVB.B1 and VB1.AB.Beweging.neer) or (TabbladVB.B2 and VB2.AB.Beweging.neer): "black" else "white" end;
+    end
+
+    group CalamiteitenDoorsteek:
+      svgin id "KnopCaDoNoordSluiten" event KnoppenCaDo.u_noordSluit;
+      svgout id "CaDoNoordSluiten" attr "fill" value if CaDoNoord.Beweging.neer: "gold" else "grey" end;
+      svgin id "KnopCaDoNoordStoppen" event KnoppenCaDo.u_noordStop;
+      svgout id "CaDoNoordStoppen" attr "fill" value if CaDoNoord.Beweging.geen: "gold" else "grey" end;
+      svgin id "KnopCaDoNoordOpenen" event KnoppenCaDo.u_noordOpen;
+      svgout id "CaDoNoordOpenen" attr "fill" value if CaDoNoord.Beweging.op: "gold" else "grey" end;
+
+      svgin id "KnopCaDoZuidSluiten" event KnoppenCaDo.u_zuidSluit;
+      svgout id "CaDoZuidSluiten" attr "fill" value if CaDoZuid.Beweging.neer: "gold" else "grey" end;
+      svgin id "KnopCaDoZuidStoppen" event KnoppenCaDo.u_zuidStop;
+      svgout id "CaDoZuidStoppen" attr "fill" value if CaDoZuid.Beweging.geen: "gold" else "grey" end;
+      svgin id "KnopCaDoZuidOpenen" event KnoppenCaDo.u_zuidOpen;
+      svgout id "CaDoZuidOpenen" attr "fill" value if CaDoZuid.Beweging.op: "gold" else "grey" end;
+    end
+
+    group MTKOmroep:
+      svgin id "SystemenMTKOmroepStartLiveKnop" event MTK.Omroep.Knoppen.u_startLive;
+      svgout id "SystemenMTKOmroepStartLive" attr "fill" value if MTK.Omroep.Modus.live: "red" else "grey" end;
+      svgin id "SystemenMTKOmroepStopLiveKnop" event MTK.Omroep.Knoppen.u_stopLive;
+
+      svgin id "SystemenMTKOmroepStartBoodschapKnop" event MTK.Omroep.Knoppen.u_startBoodschap;
+      svgout id "SystemenMTKOmroepStartBoodschap" attr "fill" value if MTK.Omroep.Modus.boodschap: "red" else "grey" end;
+      svgin id "SystemenMTKOmroepStopBoodschapKnop" event MTK.Omroep.Knoppen.u_stopBoodschap;
+    end
+
+    group Overdruk:
+      svgin id "SystemenOverdrukAutoKnop" event MTK.KnoppenOverdruk.u_auto;
+      svgout id "SystemenOverdrukAuto" attr "fill" value if MTK.BedieningOverdruk.auto: "gold" else "grey" end;
+      svgin id "SystemenOverdrukHandKnop" event MTK.KnoppenOverdruk.u_hand;
+      svgout id "SystemenOverdrukHand" attr "fill" value if MTK.BedieningOverdruk.hand: "gold" else "grey" end;
+
+      svgin id "SystemenOverdrukUitKnop" event MTK.KnoppenOverdruk.u_uit;
+      svgout id "SystemenOverdrukUit" attr "fill" value if MTK.Overdruk.uit: "gold" else "grey" end;
+      svgin id "SystemenOverdrukLinksKnop" event MTK.KnoppenOverdruk.u_links;
+      svgout id "SystemenOverdrukLinks" attr "fill" value if MTK.Overdruk.links: "gold" else "grey" end;
+      svgin id "SystemenOverdrukRechtsKnop" event MTK.KnoppenOverdruk.u_rechts;
+      svgout id "SystemenOverdrukRechts" attr "fill" value if MTK.Overdruk.rechts: "gold" else "grey" end;
+    end
+
+    group DynamischeVluchtrouteIndicatie:
+      svgin id "SystemenDVIAutoKnop" event MTK.KnoppenDVI.u_auto;
+      svgout id "SystemenDVIAuto" attr "fill" value if MTK.BedieningDVI.auto: "gold" else "grey" end;
+      svgin id "SystemenDVIHandKnop" event MTK.KnoppenDVI.u_hand;
+      svgout id "SystemenDVIHand" attr "fill" value if MTK.BedieningDVI.hand: "gold" else "grey" end;
+
+      svgin id "SystemenDVIUitKnop" event MTK.KnoppenDVI.u_uit;
+      svgout id "SystemenDVIUit" attr "fill" value if MTK.DVI.uit: "gold" else "grey" end;
+      svgin id "SystemenDVIAflopendKnop" event MTK.KnoppenDVI.u_aflopend;
+      svgout id "SystemenDVIAflopend" attr "fill" value if MTK.DVI.aflopend: "gold" else "grey" end;
+      svgin id "SystemenDVIOplopendKnop" event MTK.KnoppenDVI.u_oplopend;
+      svgout id "SystemenDVIOplopend" attr "fill" value if MTK.DVI.oplopend: "gold" else "grey" end;
+    end
+
+  end
+
+end

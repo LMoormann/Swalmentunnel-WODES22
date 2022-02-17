@@ -1,0 +1,53 @@
+import "Actuator.cif", "Sensor.cif", "Bediening.cif";
+
+group def BrandBlusInstallatie(alg bool setauto):
+  Pomp: Actuator(true,false);
+
+  plant Sensors:
+    uncontrollable u_laag_aan, u_laag_uit, u_hoog_aan, u_hoog_uit;
+    location laag:
+      initial; marked;
+      edge u_laag_uit goto tussen;
+    location tussen:
+      edge u_laag_aan goto laag;
+      edge u_hoog_aan goto hoog;
+    location hoog:
+      edge u_hoog_uit goto tussen;
+  end
+
+  plant Regime:
+    controllable c_bewaken, c_blussen;
+    location bewaken:
+      initial; marked;
+      edge c_blussen goto blussen;
+    location blussen:
+      edge c_bewaken goto bewaken;
+  end
+
+  Bediening: ^Bediening();
+
+  plant Knoppen:
+    uncontrollable u_auto, u_hand, u_blussen, u_bewaken;
+    controllable c_auto_klaar, c_hand_klaar, c_blussen_klaar, c_bewaken_klaar;
+    monitor u_auto, u_hand, u_blussen, u_bewaken;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+      edge u_blussen goto blussen;
+      edge u_bewaken goto bewaken;
+    location auto:
+      edge c_auto_klaar when Bediening.auto goto los;
+    location hand:
+      edge c_hand_klaar when Bediening.hand goto los;
+    location blussen:
+      edge c_blussen_klaar when Regime.blussen goto los;
+    location bewaken:
+      edge c_bewaken_klaar when Regime.bewaken goto los;
+  end
+
+  requirement Bediening.c_hand needs Knoppen.hand and not setauto;
+  requirement Bediening.c_auto needs Knoppen.auto or setauto;
+  requirement Pomp.c_aan needs Regime.blussen and Sensors.laag;
+  requirement Pomp.c_uit needs Regime.bewaken or (Regime.blussen and Sensors.hoog);
+end

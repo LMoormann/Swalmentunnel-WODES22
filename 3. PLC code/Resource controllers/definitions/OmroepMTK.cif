@@ -1,0 +1,37 @@
+group def OmroepMTK():
+
+  plant Modus:
+    controllable c_startlive, c_stoplive, c_startboodschap, c_stopboodschap;
+
+    location uit:
+      initial; marked;
+      edge c_startlive goto live;
+      edge c_startboodschap goto boodschap;
+    location live:
+      edge c_stoplive goto uit;
+      edge c_startboodschap goto boodschap;
+    location boodschap:
+      edge c_startlive goto live;
+      edge c_stopboodschap goto uit;
+  end
+
+  plant Knoppen:
+    uncontrollable u_startLive, u_stopLive, u_startBoodschap, u_stopBoodschap;
+    controllable c_startLive_klaar, c_stopLive_klaar, c_startBoodschap_klaar, c_stopBoodschap_klaar;
+    monitor u_startLive, u_stopLive, u_startBoodschap, u_stopBoodschap;
+    location los:
+      initial; marked;
+      edge u_startLive goto startLive;
+      edge u_stopLive goto stopLive;
+      edge u_startBoodschap goto startBoodschap;
+      edge u_stopBoodschap goto stopBoodschap;
+    location startLive:
+      edge c_startLive_klaar when Modus.live goto los;
+    location stopLive:
+      edge c_stopLive_klaar when Modus.uit goto los;
+    location startBoodschap:
+      edge c_startBoodschap_klaar when Modus.boodschap goto los;
+    location stopBoodschap:
+      edge c_stopBoodschap_klaar when Modus.uit goto los;
+  end
+end

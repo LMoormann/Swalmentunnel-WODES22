@@ -1,0 +1,52 @@
+import "Knop_plusmin.cif";
+
+group def Sim_Lichtsensor(event set_0, set_1, set_2, set_3, set_4, set_5, set_6, set_7, set_8;
+                          alg bool sen_0, sen_1, sen_2, sen_3, sen_4, sen_5, sen_6, sen_7, sen_8; alg string locatie):
+
+    invariant set_0 needs knop.knoppen_lichtsensor.level = 0;
+    invariant set_1 needs knop.knoppen_lichtsensor.level = 1;
+    invariant set_2 needs knop.knoppen_lichtsensor.level = 2;
+    invariant set_3 needs knop.knoppen_lichtsensor.level = 3;
+    invariant set_4 needs knop.knoppen_lichtsensor.level = 4;
+    invariant set_5 needs knop.knoppen_lichtsensor.level = 5;
+    invariant set_6 needs knop.knoppen_lichtsensor.level = 6;
+    invariant set_7 needs knop.knoppen_lichtsensor.level = 7;
+    invariant set_8 needs knop.knoppen_lichtsensor.level = 8;
+
+    svgout id locatie+"_lichtsensor_sterkte_1" attr  "fill" value
+                                   if sen_1 or sen_2 or sen_3 or sen_4 or sen_5 or sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_2" attr  "fill" value
+                                   if sen_2 or sen_3 or sen_4 or sen_5 or sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_3" attr  "fill" value
+                                   if sen_3 or sen_4 or sen_5 or sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_4" attr  "fill" value
+                                   if sen_4 or sen_5 or sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_5" attr  "fill" value
+                                   if sen_5 or sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_6" attr  "fill" value
+                                   if sen_6 or sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_7" attr  "fill" value
+                                   if sen_7 or sen_8: "yellow" else "none" end;
+    svgout id locatie+"_lichtsensor_sterkte_8" attr  "fill" value
+                                   if sen_8: "yellow" else "none" end;
+    group def X():
+    end
+
+    group knop:
+        svgfile"../controle_paneel.svg";
+        knoppen_lichtsensor: Knop_plusmin(
+            "knop_licht_plus_"+locatie,
+            "knop_licht_min_"+locatie,8,3);
+        svgout id "licht_stand_"+locatie text value if sen_0: fmt("%s",<string>0)
+                                                    elif sen_1: fmt("%s",<string>1)
+                                                    elif sen_2: fmt("%s",<string>2)
+                                                    elif sen_3: fmt("%s",<string>3)
+                                                    elif sen_4: fmt("%s",<string>4)
+                                                    elif sen_5: fmt("%s",<string>5)
+                                                    elif sen_6: fmt("%s",<string>6)
+                                                    elif sen_7: fmt("%s",<string>7)
+                                                    elif sen_8: fmt("%s",<string>8)
+                                                    else fmt("%s",<string>0)
+                                                    end;
+    end
+end

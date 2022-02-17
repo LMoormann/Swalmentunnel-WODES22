@@ -1,0 +1,18 @@
+import "Sim_Sensor.cif";
+
+group def Sim_SOS(event aan, uit;
+                  alg string locatie):
+
+    sim_s: sim_sensor(true, uit, aan);
+
+    svgout id locatie+"_SOS" attr "fill" value if sim_s.aan: "yellow" else "grey" end;
+
+  group sos:
+    svgfile "../controle_paneel.svg";
+    svgin id "knop_sos_"+locatie event if sim_s.uit: sim_s.e_aan else sim_s.e_uit end;
+    svgout id "knop_sos_"+locatie attr "fill" value
+        if sim_s.uit: "#b72e2e"
+        else "#279d35" end;
+  end
+
+end

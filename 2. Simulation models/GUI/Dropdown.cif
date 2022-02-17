@@ -1,0 +1,8 @@
+plant def Dropdown():
+  event e_open, e_sluit;
+  location dicht:
+    initial;
+    edge e_open goto open;
+  location open:
+    edge e_sluit goto dicht;
+end

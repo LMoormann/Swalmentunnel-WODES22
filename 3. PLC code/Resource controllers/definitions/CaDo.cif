@@ -1,0 +1,51 @@
+import "Actuator.cif", "Sensor.cif";
+
+group def CaDo():
+
+  plant Stand:
+    uncontrollable u_op, u_opverlaten, u_neer;
+    location op:
+      initial; marked;
+      edge u_opverlaten goto opverlaten;
+    location opverlaten:
+      edge u_op goto op;
+      edge u_neer goto neer;
+    location neer:
+      edge u_opverlaten goto opverlaten;
+  end
+
+  plant Beweging:
+    uncontrollable u_op, u_neer, u_geen;
+    location geen:
+      initial; marked;
+      edge u_op goto op;
+      edge u_neer goto neer;
+    location op:
+      edge u_neer goto neer;
+      edge u_geen goto geen;
+    location neer:
+      edge u_op goto op;
+      edge u_geen goto geen;
+  end
+
+  plant Commando:
+    controllable c_opneer, c_opstop, c_neerop, c_neerstop, c_stopneer, c_stopop;
+    location op:
+      initial; marked;
+      edge c_opneer goto neer;
+      edge c_opstop goto stop;
+    location neer:
+      edge c_neerop goto op;
+      edge c_neerstop goto stop;
+    location stop:
+      edge c_stopneer goto neer;
+      edge c_stopop goto op;
+  end
+
+  //Fysieke eisen
+  requirement Stand.op or Beweging.op disables {Commando.c_neerop, Commando.c_stopop};
+  requirement Stand.neer or Beweging.neer disables {Commando.c_opneer, Commando.c_stopneer};
+  requirement Beweging.geen disables {Commando.c_opstop, Commando.c_neerstop};
+
+end
+

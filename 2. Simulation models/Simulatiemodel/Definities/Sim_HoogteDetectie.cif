@@ -1,0 +1,20 @@
+import "Sim_Timer.cif";
+
+group def Sim_HoogteDetectie(event sensor_aan, sensor_uit, timer_aan, timer_afgelopen, timer_reset;
+  alg bool actuator_HD, sensor_HD; alg string locatie, positie; alg real looptijd):
+
+  Timer: Simpele_timer(timer_aan, timer_afgelopen, sensor_aan, timer_reset, looptijd);
+
+  svgout id locatie+"_hoogtedetectie_"+positie attr "opacity" value if actuator_HD: "1" else "0" end;
+
+  group hoogtedetectie:
+    svgfile "../controle_paneel.svg";
+    svgin id locatie+"_knop_hoogtedetectie_"+positie event
+      if sensor_HD:
+        sensor_uit
+      else sensor_aan end;
+    svgout id locatie+"_knop_hoogtedetectie_"+positie attr "fill" value
+      if sensor_HD: "#279d35"
+      else "#b72e2e" end;
+  end
+end

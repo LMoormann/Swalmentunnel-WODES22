@@ -1,0 +1,144 @@
+import "definitions/Verkeersbuis.cif", "definitions/KnoppenVerkeersbuis.cif", "definitions/MiddenTunnelKanaal.cif",
+       "definitions/BrandBlusInstallatie.cif", "definitions/Pompkelder.cif", "definitions/CaDo.cif";
+
+VB1: Verkeersbuis1();
+VB2: Verkeersbuis2();
+MTK: MiddenTunnelKanaal(VB1.Stand.calamiteit or VB2.Stand.calamiteit,
+                        VB1.Stand.evacuatie or VB2.Stand.evacuatie,
+                       (VB1.Stand.evacuatie or VB1.Stand.calamiteit) and not (VB2.Stand.evacuatie or VB2.Stand.calamiteit),
+                       (VB2.Stand.evacuatie or VB2.Stand.calamiteit) and not (VB1.Stand.evacuatie or VB1.Stand.calamiteit),
+                        VB1.SetAuto.setauto or VB2.SetAuto.setauto);
+BBI: ^BrandBlusInstallatie(VB1.SetAuto.setauto or VB2.SetAuto.setauto);
+KelderSchoon: ^KelderSchoon_def(VB1.SetAuto.setauto or VB2.SetAuto.setauto,
+                               (VB1.Stand.calamiteit or VB1.Stand.evacuatie or VB1.Stand.ondersteunend)
+                            or (VB2.Stand.calamiteit or VB2.Stand.evacuatie or VB2.Stand.ondersteunend));
+KelderVuil: ^KelderVuil_def(VB1.SetAuto.setauto or VB2.SetAuto.setauto,
+                           (VB1.Stand.calamiteit or VB1.Stand.evacuatie or VB1.Stand.ondersteunend)
+                        or (VB2.Stand.calamiteit or VB2.Stand.evacuatie or VB2.Stand.ondersteunend));
+
+VB1Knoppen: KnoppenVerkeersbuis(VB1.Stand.operationeel, VB1.Stand.calamiteit, VB1.Stand.herstel, VB1.Stand.evacuatie, VB1.Stand.onderhoud, VB1.Stand.standby,
+                                VB2.Stand.ondersteunend, VB2.Stand.operationeel, VB2.Stand.standby, VB2.Stand.onderhoud, VB2Knoppen.Waarnemer.los, VB2.Stand.calamiteit, VB2.Stand.herstel,
+                                VB1.PopUp.Venster.aan, VB1.PopUp.Venster.uit, VB1.PopUp.Timer.lopend, VB1.PopUp.Timer.uit,
+                                VB2.PopUp.Venster.uit, VB2.PopUp.Timer.uit);
+
+VB2Knoppen: KnoppenVerkeersbuis(VB2.Stand.operationeel, VB2.Stand.calamiteit, VB2.Stand.herstel, VB2.Stand.evacuatie, VB2.Stand.onderhoud, VB2.Stand.standby,
+                                VB1.Stand.ondersteunend, VB1.Stand.operationeel, VB1.Stand.standby, VB1.Stand.onderhoud, VB1Knoppen.Waarnemer.los, VB1.Stand.calamiteit, VB1.Stand.herstel,
+                                VB2.PopUp.Venster.aan, VB2.PopUp.Venster.uit, VB2.PopUp.Timer.lopend, VB2.PopUp.Timer.uit,
+                                VB1.PopUp.Venster.uit, VB1.PopUp.Timer.uit);
+
+CaDoNoord: CaDo();
+CaDoZuid: CaDo();
+plant KnoppenCaDo:
+  uncontrollable u_noordOpen, u_noordSluit, u_noordStop, u_zuidOpen, u_zuidSluit, u_zuidStop;
+  controllable c_noordOpen_klaar, c_noordSluit_klaar, c_noordStop_klaar, c_zuidOpen_klaar, c_zuidSluit_klaar, c_zuidStop_klaar;
+  monitor u_noordOpen, u_noordSluit, u_noordStop, u_zuidOpen, u_zuidSluit, u_zuidStop;
+  location los:
+    initial; marked;
+    edge u_noordOpen goto noordOpen;
+    edge u_noordSluit goto noordSluit;
+    edge u_noordStop goto noordStop;
+    edge u_zuidOpen goto zuidOpen;
+    edge u_zuidSluit goto zuidSluit;
+    edge u_zuidStop goto zuidStop;
+  location noordOpen:
+    edge c_noordOpen_klaar goto los;
+  location noordSluit:
+    edge c_noordSluit_klaar goto los;
+  location noordStop:
+    edge c_noordStop_klaar goto los;
+  location zuidOpen:
+    edge c_zuidOpen_klaar goto los;
+  location zuidSluit:
+    edge c_zuidSluit_klaar goto los;
+  location zuidStop:
+    edge c_zuidStop_klaar goto los;
+end
+
+// Stand verkeersbuizen
+requirement VB1.Stand.c_operationeel needs VB1Knoppen.Waarnemer.operationeel;
+requirement VB2.Stand.c_operationeel needs VB2Knoppen.Waarnemer.operationeel;
+
+requirement VB1.Stand.c_standby needs ((VB1.Rookdetectie.stand4 or VB1.Rookdetectie.stand5 or VB1.Rookdetectie.stand6 or VB1.Rookdetectie.stand7 or VB1.Rookdetectie.stand8) or (VB1.HPKA1.SensorOpen.aan and (VB1.HPKA1.Handblusser.aan or VB1.HPKA1.Brandslang.aan)) or (VB1.HPKC1.SensorOpen.aan and VB1.HPKC1.Handblusser.aan)) and VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los and not VB1.Stand.calamiteit;
+requirement VB2.Stand.c_standby needs ((VB2.Rookdetectie.stand4 or VB2.Rookdetectie.stand5 or VB2.Rookdetectie.stand6 or VB2.Rookdetectie.stand7 or VB2.Rookdetectie.stand8) or (VB2.HPKA1.SensorOpen.aan and (VB2.HPKA1.Handblusser.aan or VB2.HPKA1.Brandslang.aan)) or (VB2.HPKC1.SensorOpen.aan and VB2.HPKC1.Handblusser.aan)) and VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los and not VB2.Stand.calamiteit;
+
+requirement VB1.Stand.c_calamiteit needs (VB1Knoppen.Waarnemer.bevestigen and VB2Knoppen.Waarnemer.los) or (VB1.PopUp.Timer.afgelopen and VB2Knoppen.Waarnemer.los and VB1Knoppen.Waarnemer.los) or (VB1.Stand.evacuatie and VB1Knoppen.Waarnemer.calamiteitEvacuatie and VB2Knoppen.Waarnemer.los);
+requirement VB2.Stand.c_calamiteit needs (VB2Knoppen.Waarnemer.bevestigen and VB1Knoppen.Waarnemer.los) or (VB2.PopUp.Timer.afgelopen and VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los) or (VB2.Stand.evacuatie and VB2Knoppen.Waarnemer.calamiteitEvacuatie and VB1Knoppen.Waarnemer.los);
+requirement VB1.Stand.c_calamiteit needs not VB2.Stand.calamiteit;
+requirement VB2.Stand.c_calamiteit needs not VB1.Stand.calamiteit;
+
+requirement VB1.Stand.c_evacuatie needs VB1Knoppen.Waarnemer.evacuatie;
+requirement VB2.Stand.c_evacuatie needs VB2Knoppen.Waarnemer.evacuatie;
+requirement VB1.Stand.c_evacuatie needs VB1.PopUp.Venster.uit and VB1.PopUp.Timer.uit;
+requirement VB2.Stand.c_evacuatie needs VB2.PopUp.Venster.uit and VB2.PopUp.Timer.uit;
+
+requirement VB1.Stand.c_ondersteunend needs (VB2.Stand.calamiteit and VB2Knoppen.Waarnemer.bevestigen and VB1Knoppen.Waarnemer.los) or (VB2.Stand.calamiteit and VB2.PopUp.Timer.afgelopen and VB2Knoppen.Waarnemer.los);
+requirement VB2.Stand.c_ondersteunend needs (VB1.Stand.calamiteit and VB1Knoppen.Waarnemer.bevestigen and VB2Knoppen.Waarnemer.los) or (VB1.Stand.calamiteit and VB1.PopUp.Timer.afgelopen and VB1Knoppen.Waarnemer.los);
+requirement VB1.Stand.c_ondersteunend needs VB1Knoppen.Waarnemer.los;
+requirement VB2.Stand.c_ondersteunend needs VB2Knoppen.Waarnemer.los;
+
+requirement VB1.Stand.c_herstelUitCalimiteit needs VB1Knoppen.Waarnemer.herstel;
+requirement VB2.Stand.c_herstelUitCalimiteit needs VB2Knoppen.Waarnemer.herstel;
+requirement VB1.Stand.c_herstelUitCalimiteit needs VB1.PopUp.Venster.uit and VB1.PopUp.Timer.uit;
+requirement VB2.Stand.c_herstelUitCalimiteit needs VB2.PopUp.Venster.uit and VB2.PopUp.Timer.uit;
+requirement VB1.Stand.c_herstelUitOndersteunend needs VB2.Stand.herstel and (VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.herstel);
+requirement VB2.Stand.c_herstelUitOndersteunend needs VB1.Stand.herstel and (VB2Knoppen.Waarnemer.los and VB1Knoppen.Waarnemer.herstel);
+requirement VB1.Stand.c_herstelUitOnderhoud needs VB1Knoppen.Waarnemer.herstel;
+requirement VB2.Stand.c_herstelUitOnderhoud needs VB2Knoppen.Waarnemer.herstel;
+
+requirement VB1.Stand.c_onderhoud needs VB1Knoppen.Waarnemer.onderhoud;
+requirement VB2.Stand.c_onderhoud needs VB2Knoppen.Waarnemer.onderhoud;
+
+// Setauto
+requirement VB1.SetAuto.c_klaar needs MTK.BedieningVerlichting.auto and MTK.BedieningOverdruk.auto and MTK.BedieningDVI.auto and BBI.Bediening.auto and KelderSchoon.Bediening.auto and KelderVuil.Bediening.auto;
+requirement VB2.SetAuto.c_klaar needs MTK.BedieningVerlichting.auto and MTK.BedieningOverdruk.auto and MTK.BedieningDVI.auto and BBI.Bediening.auto and KelderSchoon.Bediening.auto and KelderVuil.Bediening.auto;
+
+// Pop-up venster
+requirement VB1.PopUp.Venster.c_aan needs (VB1Knoppen.Waarnemer.calamiteitPopUp and VB2Knoppen.Waarnemer.los) or (VB1.Stand.standby and VB1.SOS.aan and (VB1.Rookdetectie.stand4 or VB1.Rookdetectie.stand5 or VB1.Rookdetectie.stand6 or VB1.Rookdetectie.stand7 or VB1.Rookdetectie.stand8) and ((VB1.HPKA1.SensorOpen.aan and (VB1.HPKA1.Handblusser.aan or VB1.HPKA1.Brandslang.aan or VB1.HPKA1.Noodtelefoon.aan)) or (VB1.HPKC1.SensorOpen.aan and (VB1.HPKC1.Handblusser.aan or VB1.HPKC1.Noodtelefoon.aan))) and VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los and VB2.PopUp.Venster.uit);
+requirement VB2.PopUp.Venster.c_aan needs (VB2Knoppen.Waarnemer.calamiteitPopUp and VB1Knoppen.Waarnemer.los) or (VB2.Stand.standby and VB2.SOS.aan and (VB2.Rookdetectie.stand4 or VB2.Rookdetectie.stand5 or VB2.Rookdetectie.stand6 or VB2.Rookdetectie.stand7 or VB2.Rookdetectie.stand8) and ((VB2.HPKA1.SensorOpen.aan and (VB2.HPKA1.Handblusser.aan or VB2.HPKA1.Brandslang.aan or VB2.HPKA1.Noodtelefoon.aan)) or (VB2.HPKC1.SensorOpen.aan and (VB2.HPKC1.Handblusser.aan or VB2.HPKC1.Noodtelefoon.aan))) and VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los and VB1.PopUp.Venster.uit);
+requirement VB1.PopUp.Venster.c_aan needs not VB2.Stand.calamiteit;
+requirement VB2.PopUp.Venster.c_aan needs not VB1.Stand.calamiteit;
+requirement VB1.PopUp.Venster.c_aan needs VB2.PopUp.Timer.uit;
+requirement VB2.PopUp.Venster.c_aan needs VB1.PopUp.Timer.uit;
+
+requirement VB1.PopUp.Venster.c_uit needs VB1Knoppen.Waarnemer.afwijzen or ((VB1Knoppen.Waarnemer.bevestigen or VB1.PopUp.Timer.afgelopen) and VB1.Stand.calamiteit and VB2.Stand.ondersteunend and not VB1Knoppen.Waarnemer.calamiteitPopUp);
+requirement VB2.PopUp.Venster.c_uit needs VB2Knoppen.Waarnemer.afwijzen or ((VB2Knoppen.Waarnemer.bevestigen or VB2.PopUp.Timer.afgelopen) and VB2.Stand.calamiteit and VB1.Stand.ondersteunend and not VB2Knoppen.Waarnemer.calamiteitPopUp);
+
+requirement VB1.PopUp.Timer.c_aan needs VB2Knoppen.Waarnemer.los and VB1Knoppen.Waarnemer.los;
+requirement VB2.PopUp.Timer.c_aan needs VB2Knoppen.Waarnemer.los and VB1Knoppen.Waarnemer.los;
+
+requirement VB1.PopUp.Timer.c_resetAfgelopen needs (VB1.PopUp.Venster.uit);
+requirement VB1.PopUp.Timer.c_resetLopend needs (VB1Knoppen.Waarnemer.afwijzen or VB1Knoppen.Waarnemer.bevestigen);
+
+requirement VB2.PopUp.Timer.c_resetAfgelopen needs (VB2.PopUp.Venster.uit);
+requirement VB2.PopUp.Timer.c_resetLopend needs (VB2Knoppen.Waarnemer.afwijzen or VB2Knoppen.Waarnemer.bevestigen);
+
+// Gelijktijdige calamiteit in beide buizen
+requirement VB1.SOS.aan and (VB1.Rookdetectie.stand4 or VB1.Rookdetectie.stand5 or VB1.Rookdetectie.stand6 or VB1.Rookdetectie.stand7 or VB1.Rookdetectie.stand8) and ((VB1.HPKA1.SensorOpen.aan and (VB1.HPKA1.Handblusser.aan or VB1.HPKA1.Brandslang.aan or VB1.HPKA1.Noodtelefoon.aan)) or (VB1.HPKC1.SensorOpen.aan and (VB1.HPKC1.Handblusser.aan or VB1.HPKC1.Noodtelefoon.aan))) disables {VB2.PopUp.Venster.c_aan};
+
+// Ventilatie
+requirement {VB1.Ventilatie.Stand.c_0, VB1.Ventilatie.Stand.c_1, VB1.Ventilatie.Stand.c_2, VB1.Ventilatie.Stand.c_3, VB1.Ventilatie.Stand.c_4, VB1.Ventilatie.Stand.c_5, VB1.Ventilatie.Stand.c_6, VB1.Ventilatie.Stand.c_7, VB1.Ventilatie.Stand.c_8} needs VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los;
+requirement {VB2.Ventilatie.Stand.c_0, VB2.Ventilatie.Stand.c_1, VB2.Ventilatie.Stand.c_2, VB2.Ventilatie.Stand.c_3, VB2.Ventilatie.Stand.c_4, VB2.Ventilatie.Stand.c_5, VB2.Ventilatie.Stand.c_6, VB2.Ventilatie.Stand.c_7, VB2.Ventilatie.Stand.c_8} needs VB1Knoppen.Waarnemer.los and VB2Knoppen.Waarnemer.los;
+
+// Brandblusinstallatie
+requirement BBI.Regime.c_blussen needs (BBI.Bediening.auto and (VB1.HPKA1.Brandslang.aan or VB2.HPKA1.Brandslang.aan
+                                                             or VB1.Stand.calamiteit or VB1.Stand.evacuatie or VB1.Stand.ondersteunend
+                                                             or VB2.Stand.calamiteit or VB2.Stand.evacuatie or VB2.Stand.ondersteunend))
+                                    or (BBI.Bediening.hand and BBI.Knoppen.blussen);
+requirement BBI.Regime.c_bewaken needs (BBI.Bediening.auto and VB1.HPKA1.Brandslang.uit and VB2.HPKA1.Brandslang.uit
+                                                           and not (VB1.Stand.calamiteit or VB1.Stand.evacuatie or VB1.Stand.ondersteunend)
+                                                           and not (VB2.Stand.calamiteit or VB2.Stand.evacuatie or VB2.Stand.ondersteunend))
+                                    or (BBI.Bediening.hand and BBI.Knoppen.bewaken);
+
+// Omroep MTK
+requirement MTK.Omroep.Modus.c_startlive needs MTK.Omroep.Knoppen.startLive;
+requirement MTK.Omroep.Modus.c_stoplive needs MTK.Omroep.Knoppen.stopLive;
+requirement MTK.Omroep.Modus.c_startboodschap needs MTK.Omroep.Knoppen.startBoodschap or ((VB1.Stand.evacuatie or VB2.Stand.evacuatie) and MTK.Omroep.Knoppen.los);
+requirement MTK.Omroep.Modus.c_stopboodschap needs MTK.Omroep.Knoppen.stopBoodschap;
+
+// CaDo
+requirement {CaDoNoord.Commando.c_neerop, CaDoNoord.Commando.c_stopop} needs KnoppenCaDo.noordOpen;
+requirement {CaDoNoord.Commando.c_opneer, CaDoNoord.Commando.c_stopneer} needs KnoppenCaDo.noordSluit;
+requirement {CaDoNoord.Commando.c_opstop, CaDoNoord.Commando.c_neerstop} needs KnoppenCaDo.noordStop;
+requirement {CaDoZuid.Commando.c_neerop, CaDoZuid.Commando.c_stopop} needs KnoppenCaDo.zuidOpen;
+requirement {CaDoZuid.Commando.c_opneer, CaDoZuid.Commando.c_stopneer} needs KnoppenCaDo.zuidSluit;
+requirement {CaDoZuid.Commando.c_opstop, CaDoZuid.Commando.c_neerstop} needs KnoppenCaDo.zuidStop;

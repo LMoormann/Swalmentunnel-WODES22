@@ -1,0 +1,8 @@
+plant def Bediening():
+	controllable c_auto, c_hand;
+	location auto:
+		initial; marked;
+		edge c_hand goto hand;
+	location hand:
+		edge c_auto goto auto;
+end

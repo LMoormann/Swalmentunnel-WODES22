@@ -1,0 +1,13 @@
+import "Sensor.cif", "Timer.cif", "Actuator.cif";
+
+group def HoogteDetectie():
+    Sensor: ^Sensor(true,true,false);
+    Lampen: Actuator(true, false);
+    Timer: TimerSimpel();
+
+    requirement Lampen.c_aan needs Sensor.aan;
+    requirement Lampen.c_aan needs Timer.uit;
+    requirement Lampen.c_uit needs Timer.afgelopen;
+    requirement Timer.c_aan needs Lampen.aan;
+    requirement Timer.c_resetAfgelopen needs Lampen.uit;
+end

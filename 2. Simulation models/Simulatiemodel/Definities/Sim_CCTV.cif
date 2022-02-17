@@ -1,0 +1,44 @@
+import "Sim_Timer.cif";
+
+group def Sim_CCTV(alg bool toerit, HDwaarschuwing, HDrood, VRI, AB, ingang, sectie1, HPK, uitgang, BR_aan;
+                   controllable c_aan, c_resetLopend, c_resetUit, c_herstart;
+                   uncontrollable u_timeout):
+
+  plant HybrideTimer:
+
+    cont t = 0 der if uit:       0
+                 elif afgelopen: 0
+                 else -1 end;
+
+    location uit:
+        initial; marked;
+        edge c_aan do t := 1 goto lopend;
+    location lopend:
+        edge c_resetLopend goto uit;
+        edge u_timeout when t <= 0 goto afgelopen;
+    location afgelopen:
+        edge c_resetUit goto uit;
+        edge c_herstart do t := 1 goto lopend;
+  end
+
+  svgout id "buis_1_camera_toerit" attr "fill" value if toerit: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_HD_waarschuwing" attr "fill" value if HDwaarschuwing: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_HD_rood" attr "fill" value if HDrood: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_VRI" attr "fill" value if VRI: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_afsluitbomen" attr "fill" value if AB: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_ingang" attr "fill" value if ingang: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_sectie1" attr "fill" value if sectie1: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_hulppostkasten" attr "fill" value if HPK: "#bfb900" else "#666666" end;
+  svgout id "buis_1_camera_uitgang" attr "fill" value if uitgang: "#bfb900" else "#666666" end;
+
+  svgout id "buis_1_camera_toerit_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_HD_waarschuwing_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_HD_rood_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_VRI_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_afsluitbomen_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_ingang_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_sectie1_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_hulppostkasten_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+  svgout id "buis_1_camera_uitgang_BR" attr "opacity" value if BR_aan: "1" else "0" end;
+
+end

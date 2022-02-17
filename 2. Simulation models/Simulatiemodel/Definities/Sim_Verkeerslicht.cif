@@ -1,0 +1,26 @@
+import "Sim_Timer.cif";
+
+// TV: Timer vrijgave....
+// A=aan, G=geel, R=rood, U=uit
+
+group def Sim_VRI(alg bool knipper,rood,geel;
+    event TVAaan, TVAresetAfgelopen, TVAtimeout, TVGaan, TVGresetAfgelopen, TVGtimeout, TVRaan, TVRresetAfgelopen, TVRtimeout, TVUaan, TVUresetAfgelopen, TVUtimeout,
+    cvrijgave,cvrijgaveresetLopend, cvrijgaveresetAfgelopen,uvrijgavetimeout;
+    alg string locatie):
+
+    event e_aan,e_uit,e_timeout;
+    knipper_timer:                      Hybride_wissel_timer(e_aan,e_uit,e_timeout, 0.5);
+    timer_vrijgave_aan:                 Hybride_timer_simpel(TVAaan, TVAresetAfgelopen, TVAtimeout,3);
+    timer_vrijgave_geel:                Hybride_timer_simpel(TVGaan, TVGresetAfgelopen, TVGtimeout, 4);
+    timer_vrijgave_rood:                Hybride_timer_simpel(TVRaan, TVRresetAfgelopen, TVRtimeout, 4);
+    timer_vrijgave_uit:                 Hybride_timer_simpel(TVUaan, TVUresetAfgelopen, TVUtimeout,4);
+    hyb_timer_rood_vrijgavesignaal:     Hybride_timer(cvrijgave, cvrijgaveresetLopend, cvrijgaveresetAfgelopen, uvrijgavetimeout,4);
+
+    invariant e_aan needs knipper;
+    invariant e_uit needs not knipper;
+    invariant e_timeout needs knipper and knipper_timer.t <= 0;
+
+    svgout id locatie + "verkeerslicht_rood_licht" attr "fill" value if rood: "red" else "grey" end;
+    svgout id locatie + "verkeerslicht_geel_licht" attr "fill" value if geel or knipper_timer.aan_1: "yellow" else "grey" end;
+    svgout id locatie + "verkeerslicht_groen_licht" attr "fill" value "grey";
+end

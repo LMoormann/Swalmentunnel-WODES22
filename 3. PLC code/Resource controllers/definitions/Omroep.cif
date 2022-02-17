@@ -1,0 +1,53 @@
+group def Omroep():
+
+  plant Modus:
+    controllable c_startlive, c_stoplive, c_startboodschap, c_stopboodschap;
+
+    location uit:
+      initial; marked;
+      edge c_startlive goto live;
+      edge c_startboodschap goto boodschap;
+    location live:
+      edge c_stoplive goto uit;
+      edge c_startboodschap goto boodschap;
+    location boodschap:
+      edge c_startlive goto live;
+      edge c_stopboodschap goto uit;
+  end
+
+  plant Gebied:
+    controllable c_buis, c_sectie;
+    location buis:
+      initial; marked;
+      edge c_sectie goto sectie;
+    location sectie:
+      edge c_buis goto buis;
+  end
+
+  plant Knoppen:
+    uncontrollable u_startLive, u_stopLive, u_startBoodschap, u_stopBoodschap, u_buis, u_sectie;
+    controllable c_startLive_klaar, c_stopLive_klaar, c_startBoodschap_klaar, c_stopBoodschap_klaar, c_buis_klaar, c_sectie_klaar;
+    monitor u_startLive, u_stopLive, u_startBoodschap, u_stopBoodschap, u_buis, u_sectie;
+    location los:
+      initial; marked;
+      edge u_startLive goto startLive;
+      edge u_stopLive goto stopLive;
+      edge u_startBoodschap goto startBoodschap;
+      edge u_stopBoodschap goto stopBoodschap;
+      edge u_buis goto buis;
+      edge u_sectie goto sectie;
+    location startLive:
+      edge c_startLive_klaar when Modus.live goto los;
+    location stopLive:
+      edge c_stopLive_klaar when Modus.uit goto los;
+    location startBoodschap:
+      edge c_startBoodschap_klaar when Modus.boodschap goto los;
+    location stopBoodschap:
+      edge c_stopBoodschap_klaar when Modus.uit goto los;
+    location buis:
+      edge c_buis_klaar when Gebied.buis goto los;
+    location sectie:
+      edge c_sectie_klaar when Gebied.sectie goto los;
+  end
+
+end

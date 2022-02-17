@@ -1,0 +1,15 @@
+plant def GUI_Timer(event aan, resetLopend, resetAfgelopen, timeout;alg real looptijd):
+
+  cont t = 0 der if uit:       0
+               elif afgelopen: 0
+               else -1 end;
+
+  location uit:
+      initial; marked;
+      edge aan do t := looptijd goto lopend;
+  location lopend:
+      edge resetLopend goto uit;
+      edge timeout when t <= 0 goto afgelopen;
+  location afgelopen:
+      edge resetAfgelopen goto uit;
+end

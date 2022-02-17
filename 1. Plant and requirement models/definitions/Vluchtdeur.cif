@@ -1,0 +1,57 @@
+import "Actuator.cif", "Bediening.cif", "Sensor.cif";
+
+group def Vluchtdeur(alg bool setauto): //(location wisselTimerUit)
+
+    SensorOpen: Sensor(true,true,false);
+
+    Geluidsbaken: Actuator(true,false);
+    BedieningGeluidsbaken: Bediening();
+    plant KnoppenGeluidsbaken:
+      uncontrollable u_auto, u_hand, u_aan, u_uit;
+      controllable c_auto_klaar, c_hand_klaar, c_aan_klaar, c_uit_klaar;
+      monitor u_auto, u_hand, u_aan, u_uit;
+      location los:
+        initial; marked;
+        edge u_auto goto auto;
+        edge u_hand goto hand;
+        edge u_aan goto aan;
+        edge u_uit goto uit;
+      location auto:
+        edge c_auto_klaar when BedieningGeluidsbaken.auto goto los;
+      location hand:
+        edge c_hand_klaar when BedieningGeluidsbaken.hand goto los;
+      location aan:
+        edge c_aan_klaar when Geluidsbaken.aan goto los;
+      location uit:
+        edge c_uit_klaar when Geluidsbaken.uit goto los;
+    end
+
+    requirement BedieningGeluidsbaken.c_hand needs KnoppenGeluidsbaken.hand and not setauto;
+    requirement BedieningGeluidsbaken.c_auto needs KnoppenGeluidsbaken.auto or setauto;
+
+    ContourVerlichting: Actuator(true,false);
+    BedieningContourVerlichting: Bediening();
+    plant KnoppenContourVerlichting:
+      uncontrollable u_auto, u_hand, u_aan, u_uit;
+      controllable c_auto_klaar, c_hand_klaar, c_aan_klaar, c_uit_klaar;
+      monitor u_auto, u_hand, u_aan, u_uit;
+      location los:
+        initial; marked;
+        edge u_auto goto auto;
+        edge u_hand goto hand;
+        edge u_aan goto aan;
+        edge u_uit goto uit;
+      location auto:
+        edge c_auto_klaar when BedieningContourVerlichting.auto goto los;
+      location hand:
+        edge c_hand_klaar when BedieningContourVerlichting.hand goto los;
+      location aan:
+        edge c_aan_klaar when ContourVerlichting.aan goto los;
+      location uit:
+        edge c_uit_klaar when ContourVerlichting.uit goto los;
+    end
+
+    requirement BedieningContourVerlichting.c_hand needs KnoppenContourVerlichting.hand and not setauto;
+    requirement BedieningContourVerlichting.c_auto needs KnoppenContourVerlichting.auto or setauto;
+
+end

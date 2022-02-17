@@ -1,0 +1,11 @@
+plant def Sensor(alg bool uitInitieel; alg bool uitGemarkeerd; alg bool aanGemarkeerd):
+  uncontrollable u_aan, u_uit;
+  location uit:
+    initial uitInitieel;
+    marked uitGemarkeerd;
+    edge u_aan goto aan;
+  location aan:
+    initial not uitInitieel;
+    marked aanGemarkeerd;
+    edge u_uit goto uit;
+end

@@ -1,0 +1,10 @@
+from "lib:cif3" import *;
+
+// Input file:
+// string input_path = "../Supervisor.cif";
+string input_path = "../Tunnel.cif";
+
+cif3ctrlcheck(input_path,
+			  "--finiteResponseCheck=yes",
+			  "--confluenceCheck=no",
+			  "--explicit=yes");

@@ -1,0 +1,16 @@
+import "Sim_Timer.cif";
+
+group def Sim_HF(event timer_aan, timer_afgelopen;
+             alg bool radio, boodschap, mute, afspelen;
+             alg string locatie):
+
+    event e_reset;
+    invariant e_reset needs Timer.afgelopen or mute;
+
+    Timer: Hybride_timer(timer_aan, e_reset, timer_afgelopen, 5);
+
+    svgout id locatie+"_HF_FM" attr "opacity" value if radio: "1" else "0" end;
+    svgout id locatie+"_HF_boodschap" attr "opacity" value if boodschap: "1" else "0" end;
+    svgout id locatie+"_HF_mute" attr "opacity" value if mute: "1" else "0" end;
+    svgout id locatie+"_path2340" attr "fill" value if afspelen: "yellow" else "grey" end; //_HF_boodschap
+end

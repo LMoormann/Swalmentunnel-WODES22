@@ -1,0 +1,41 @@
+group def Sim_Verlichting(alg int stand;
+                          controllable c_aan, c_resetLopend, c_resetUit, c_herstart;
+                          uncontrollable u_timeout;
+                          alg string locatie):
+
+  plant HybrideTimer:
+
+    cont t = 0 der if uit:       0
+                 elif afgelopen: 0
+                 else -1 end;
+
+    location uit:
+        initial; marked;
+        edge c_aan do t := 0.5 goto lopend;
+    location lopend:
+        edge c_resetLopend goto uit;
+        edge u_timeout when t <= 0 goto afgelopen;
+    location afgelopen:
+        edge c_resetUit goto uit;
+        edge c_herstart do t := 0.5 goto lopend;
+  end
+
+  svgout id locatie+"_lamp_sterkte_1" attr  "fill" value
+                                   if stand>0: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_2" attr  "fill" value
+                                   if stand>1: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_3" attr  "fill" value
+                                   if stand>2: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_4" attr  "fill" value
+                                   if stand>3: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_5" attr  "fill" value
+                                   if stand>4: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_6" attr  "fill" value
+                                   if stand>5: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_7" attr  "fill" value
+                                   if stand>6: "yellow" else "none" end;
+  svgout id locatie+"_lamp_sterkte_8" attr  "fill" value
+                                   if stand>7: "yellow" else "none" end;
+  svgout id locatie+"_lamp_aan" attr "opacity" value
+                                   if stand>0: "1" else "0" end;
+end

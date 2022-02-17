@@ -1,0 +1,79 @@
+plant def Hybride_timer(event aan, resetLopend, resetAfgelopen, timeout;alg real looptijd):
+
+  cont t = 0 der if uit:       0
+               elif afgelopen: 0
+               else -1 end;
+
+  location uit:
+      initial; marked;
+      edge aan do t := looptijd goto lopend;
+  location lopend:
+      edge resetLopend goto uit;
+      edge timeout when t <= 0 goto afgelopen;
+  location afgelopen:
+      edge resetAfgelopen goto uit;
+end
+
+plant def Hybride_timer_simpel(event aan, resetAfgelopen, timeout;alg real looptijd):
+
+  cont t = 0 der if uit:       0
+               elif afgelopen: 0
+               else -1 end;
+
+  location uit:
+      initial; marked;
+      edge aan do t := looptijd goto lopend;
+  location lopend:
+      edge timeout when t <= 0 goto afgelopen;
+  location afgelopen:
+      edge resetAfgelopen goto uit;
+end
+
+plant def Custom_timer(event aan, resetLopend, resetAfgelopen,timeout;alg real looptijd):
+
+  cont t = 0 der if uit:       0
+               elif afgelopen: 0
+               else -1 end;
+
+  location uit:
+      initial; marked;
+      edge aan do t := looptijd goto lopend;
+  location lopend:
+      edge resetLopend goto uit;
+      edge timeout when t <= 0 goto afgelopen;
+  location afgelopen:
+      edge resetAfgelopen goto uit;
+end
+
+plant def Simpele_timer(event aan, timeout, restart, reset; alg real looptijd):
+
+    cont t = 0 der if uit or afgelopen:      0
+                   else         -1
+                   end;
+
+    location uit:
+        initial; marked;
+        edge aan do t := looptijd goto lopend;
+        edge restart;
+    location lopend:
+        edge restart do t := looptijd;
+        edge timeout when t <= 0 goto afgelopen;
+    location afgelopen:
+        edge restart do t:= looptijd goto lopend;
+        edge reset goto uit;
+end
+
+plant def Hybride_wissel_timer(event aan,reset,timeout;alg real looptijd):
+
+  cont t = 0 der if uit: 0 else -1 end;
+
+  location uit:
+      initial; marked;
+      edge aan do t := looptijd goto aan_1;
+  location aan_1:
+      edge reset goto uit;
+      edge timeout when t <= 0 do t:= looptijd goto aan_2;
+  location aan_2:
+      edge reset goto uit;
+      edge timeout when t <= 0 do t:= looptijd goto aan_1;
+end

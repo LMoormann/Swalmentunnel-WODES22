@@ -1,0 +1,74 @@
+import "../../Supervisor/Supervisor.cif";
+
+group def Unit_Verlichting(alg bool s0, s1, s2, s3, s4, s5, s6, s7, s8):
+  plant HuidigeStand:
+    controllable c_plus, c_min;
+    disc int [0..8] stand = 0;
+    location:
+      initial; marked;
+      edge c_plus when stand<8 do stand:=stand+1;
+      edge c_min when stand>0 do stand:=stand-1;
+  end
+
+  plant GewensteStand:
+    uncontrollable u_0, u_1, u_2, u_3, u_4, u_5, u_6, u_7, u_8;
+    disc int [0..8] stand = 0;
+    location:
+      initial; marked;
+      edge u_0 when s0 and stand!=0 do stand:=0;
+      edge u_1 when s1 and stand!=1 do stand:=1;
+      edge u_2 when s2 and stand!=2 do stand:=2;
+      edge u_3 when s3 and stand!=3 do stand:=3;
+      edge u_4 when s4 and stand!=4 do stand:=4;
+      edge u_5 when s5 and stand!=5 do stand:=5;
+      edge u_6 when s6 and stand!=6 do stand:=6;
+      edge u_7 when s7 and stand!=7 do stand:=7;
+      edge u_8 when s8 and stand!=8 do stand:=8;
+  end
+
+  plant Timer:
+    controllable c_aan, c_resetUit, c_resetLopend, c_herstart;
+    uncontrollable u_timeout;
+
+    location uit:
+      initial; marked;
+      edge c_aan goto lopend;
+    location lopend:
+      edge c_resetLopend goto uit;
+      edge u_timeout goto afgelopen;
+    location afgelopen:
+      edge c_resetUit goto uit;
+      edge c_herstart goto lopend;
+  end
+
+  requirement HuidigeStand.c_plus needs HuidigeStand.stand<GewensteStand.stand;
+  requirement HuidigeStand.c_min needs HuidigeStand.stand>GewensteStand.stand;
+
+  requirement HuidigeStand.c_plus needs Timer.afgelopen;
+  requirement HuidigeStand.c_min needs Timer.afgelopen;
+
+  requirement Timer.c_aan needs HuidigeStand.stand!=GewensteStand.stand;
+  requirement Timer.c_resetLopend needs HuidigeStand.stand=GewensteStand.stand;
+  requirement Timer.c_resetUit needs HuidigeStand.stand=GewensteStand.stand;
+  requirement Timer.c_herstart needs HuidigeStand.stand!=GewensteStand.stand;
+
+  requirement Alterneer:
+    location l1:
+      initial; marked;
+      edge HuidigeStand.c_plus, HuidigeStand.c_min goto l2;
+    location l2:
+      edge Timer.c_herstart, Timer.c_resetUit goto l1;
+  end
+end
+
+VB1_unit_verlichting: Unit_Verlichting(VB1.Verlichting.Stand.s0, VB1.Verlichting.Stand.s1,
+                                       VB1.Verlichting.Stand.s2, VB1.Verlichting.Stand.s3,
+                                       VB1.Verlichting.Stand.s4, VB1.Verlichting.Stand.s5,
+                                       VB1.Verlichting.Stand.s6, VB1.Verlichting.Stand.s7,
+                                       VB1.Verlichting.Stand.s8);
+
+VB2_unit_verlichting: Unit_Verlichting(VB2.Verlichting.Stand.s0, VB2.Verlichting.Stand.s1,
+                                       VB2.Verlichting.Stand.s2, VB2.Verlichting.Stand.s3,
+                                       VB2.Verlichting.Stand.s4, VB2.Verlichting.Stand.s5,
+                                       VB2.Verlichting.Stand.s6, VB2.Verlichting.Stand.s7,
+                                       VB2.Verlichting.Stand.s8);

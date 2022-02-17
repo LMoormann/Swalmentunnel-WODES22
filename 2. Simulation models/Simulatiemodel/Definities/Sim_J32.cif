@@ -1,0 +1,9 @@
+import "Sim_Timer.cif";
+
+group def Sim_J32(alg bool actief; alg string j32_visu):
+
+  svgout id j32_visu+"_1" attr "fill" value if actief: "silver" else "grey" end;
+  svgout id j32_visu+"_2" attr "fill" value if actief: "silver" else "grey" end;
+  //svgout id j32_visu attr "fill" value if actief: "silver" else "grey" end;
+
+end

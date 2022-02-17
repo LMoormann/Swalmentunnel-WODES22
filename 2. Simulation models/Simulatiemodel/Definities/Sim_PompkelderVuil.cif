@@ -1,0 +1,31 @@
+group def Sim_PompkelderVuil(event   sensor_laagwater_aan, sensor_laagwater_uit;
+                            alg bool pomp_aan, instroom;
+                            alg real volume_instroom):
+
+    alg real volume_uitstroom = if pomp_aan: 30
+                                else 0 end;
+
+    const real leeg = 5, laagwater = 100, vol = 500;
+
+    cont waterniveau = 5 der
+        if   waterniveau >= vol  and (volume_instroom-volume_uitstroom > 0): 0
+        elif waterniveau <= leeg and (volume_instroom-volume_uitstroom < 0): 0
+        elif pomp_aan or instroom: volume_instroom-volume_uitstroom
+        else 0 end;
+
+    plant positie_water_observator:
+        location: initial;
+        edge sensor_laagwater_aan     when waterniveau >  laagwater+5;
+        edge sensor_laagwater_uit     when waterniveau <  laagwater;
+    end
+
+    svgout id "pompkelder_vuilwater" attr "height" value scale(waterniveau, 0, vol, 0, 151.5);
+    //svgout id "vuilwater_instroom" attr "fill" value if instroom: "#2c7081" else "#ededed" end;
+    svgout id "vuilwater_instroom" attr "stroke-width" value if volume_instroom >30: 3
+                                                 elif volume_instroom >15: 2
+                                                 elif volume_instroom >0 : 1
+                                                 else 0 end;
+    svgout id "pomp_vuilwater_aan" attr "opacity" value if pomp_aan: "1" else "0" end;
+    svgout id "pomp_vuilwater_uit" attr "opacity" value if pomp_aan: "0" else "1" end;
+    svgout id "vuilwater_uitstroom" attr "opacity" value if pomp_aan: "1" else "0" end;
+end

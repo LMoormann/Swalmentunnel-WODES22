@@ -1,0 +1,14 @@
+import "Sim_Sensor.cif";
+
+group def Sim_Kopdeur(event sensor_aan, sensor_uit; alg bool deur_open; alg string deur):
+
+    svgout id "MTK_kopdeur_"+deur attr "fill" value if deur_open: "white" else "grey" end;
+
+    group sensor:
+        svgfile "../controle_paneel.svg";
+
+        svgin id "knop_kopdeur_"+deur event if deur_open: sensor_uit else sensor_aan end;
+        svgout id "knop_kopdeur_"+deur+"_achtergrond" attr "fill" value if deur_open: "#279d35" else "#b72e2e" end;
+    end
+
+end

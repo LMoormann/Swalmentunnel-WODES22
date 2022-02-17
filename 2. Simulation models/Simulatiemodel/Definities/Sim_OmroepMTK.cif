@@ -1,0 +1,9 @@
+import "Sim_Timer.cif";
+
+group def Sim_OmroepMTK(alg bool uit, boodschap, live):
+
+    svgout id "MTK_omroep_uit" attr "opacity" value if uit: "1" else "0" end;
+    svgout id "MTK_omroep_aan" attr "opacity" value if boodschap or live: "1" else "0" end;
+    svgout id "MTK_omroep_live" attr "opacity" value if live: "1" else "0" end;
+
+end

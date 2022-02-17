@@ -1,0 +1,75 @@
+import "../../Supervisor/Supervisor.cif";
+
+group def Unit_Omroep(alg bool VerkeersbuisAan, VluchtdeurAan):
+  // Inputs
+  plant GewensteStandOmroepVerkeersbuis:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial; marked;
+      edge u_aan when VerkeersbuisAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not VerkeersbuisAan goto uit;
+  end
+
+  plant GewensteStandOmroepVluchtdeur:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial; marked;
+      edge u_aan when VluchtdeurAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not VluchtdeurAan goto uit;
+  end
+
+  // Outputs
+  plant StandOmroepVerkeersbuis:
+    controllable c_aan, c_uit;
+    location uit:
+      initial; marked;
+      edge c_aan goto aan;
+    location aan:
+      edge c_uit goto uit;
+  end
+
+  plant StandOmroepVluchtdeur:
+    controllable c_aan, c_uit;
+    location uit:
+      initial; marked;
+      edge c_aan goto aan;
+    location aan:
+      edge c_uit goto uit;
+  end
+
+  plant WisselTimer:
+    controllable c_aan, c_uit;
+    uncontrollable u_timeout;
+    location uit:
+      initial; marked;
+      edge c_aan goto aan1;
+    location aan1:
+      edge c_uit goto uit;
+      edge u_timeout goto aan2;
+    location aan2:
+      edge c_uit goto uit;
+      edge u_timeout goto aan1;
+  end
+
+  requirement StandOmroepVerkeersbuis.c_aan needs GewensteStandOmroepVerkeersbuis.aan;
+  requirement StandOmroepVerkeersbuis.c_uit needs GewensteStandOmroepVerkeersbuis.uit or WisselTimer.aan2;
+
+  requirement StandOmroepVluchtdeur.c_aan needs GewensteStandOmroepVluchtdeur.aan;
+  requirement StandOmroepVluchtdeur.c_uit needs GewensteStandOmroepVluchtdeur.uit or WisselTimer.aan1;
+
+  requirement StandOmroepVerkeersbuis.c_aan needs StandOmroepVluchtdeur.uit;
+  requirement StandOmroepVluchtdeur.c_aan needs StandOmroepVerkeersbuis.uit;
+
+  requirement WisselTimer.c_aan needs GewensteStandOmroepVerkeersbuis.aan and GewensteStandOmroepVluchtdeur.aan;
+  requirement WisselTimer.c_uit needs GewensteStandOmroepVerkeersbuis.uit or GewensteStandOmroepVluchtdeur.uit;
+
+  requirement StandOmroepVerkeersbuis.c_aan needs (WisselTimer.uit and GewensteStandOmroepVluchtdeur.uit) or WisselTimer.aan1;
+  requirement StandOmroepVluchtdeur.c_aan needs (WisselTimer.uit and GewensteStandOmroepVerkeersbuis.uit) or WisselTimer.aan2;
+end
+
+VB1_unit_omroep: Unit_Omroep(VB1.Omroep.Modus.live or VB1.Omroep.Modus.boodschap, VB1.Vluchtdeur.Geluidsbaken.aan);
+VB2_unit_omroep: Unit_Omroep(VB2.Omroep.Modus.live or VB2.Omroep.Modus.boodschap, VB2.Vluchtdeur.Geluidsbaken.aan);

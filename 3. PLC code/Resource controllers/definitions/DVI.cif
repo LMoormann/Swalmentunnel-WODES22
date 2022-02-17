@@ -1,0 +1,13 @@
+plant def DVI():
+    controllable c_uit, c_oplopend, c_aflopend;
+    location uit:
+        initial; marked;
+        edge c_oplopend goto oplopend;
+        edge c_aflopend goto aflopend;
+    location oplopend:
+        edge c_uit      goto uit;
+        edge c_aflopend goto aflopend;
+    location aflopend:
+        edge c_uit      goto uit;
+        edge c_oplopend goto oplopend;
+end

@@ -1,0 +1,41 @@
+group def CameraAuto(event trigger, handmatige_selectie, uterugkoppeling; alg bool camera_aan, BR_aan; alg string buis, locatie):
+
+    plant Camera_switch:    //terugkoppeling naar supervisor sturen door u_camera_switch toe te staan na camera trigger
+        location uit:
+            initial; marked;
+            edge trigger, handmatige_selectie goto terugkoppeling;
+        location terugkoppeling:
+            edge uterugkoppeling goto uit;
+    end
+
+    svgout id buis+"_camera_"+locatie attr "fill" value if camera_aan: "#bfb900" else "#666666" end;            //actieve camera geel kleuren, gebaseerd op locatie SensorCCTV
+    svgout id buis+"_camera_"+locatie+"_BR" attr "visibility" value if BR_aan: "visible" else "hidden" end;
+end
+
+group def CameraHand(event handmatige_selectie, uterugkoppeling; alg bool camera_aan, BR_aan; alg string buis, locatie):
+
+    plant Camera_switch:    //terugkoppeling naar supervisor sturen door u_camera_switch toe te staan na camera trigger
+        location uit:
+            initial; marked;
+            edge handmatige_selectie goto terugkoppeling;
+        location terugkoppeling:
+            edge uterugkoppeling goto uit;
+    end
+
+    svgout id buis+"_camera_"+locatie attr "fill" value if camera_aan: "#bfb900" else "#666666" end;           //actieve camera geel kleuren, gebaseerd op locatie SensorCCTV
+    svgout id buis+"_camera_"+locatie+"_BR" attr "visibility" value if BR_aan: "visible" else "hidden" end;
+end
+
+group def CameraHPK(event aDeur, aSOS, aBB, aBS, cDeur,  cSOS,  cBB, handmatige_selectie, uterugkoppeling; alg bool camera_aan, BR_aan; alg string buis, locatie):
+
+    plant Camera_switch:    //terugkoppeling naar supervisor sturen door u_camera_switch toe te staan na camera trigger
+        location uit:
+            initial; marked;
+            edge aDeur, cDeur, aSOS, cSOS, aBB, cBB, aBS, handmatige_selectie goto terugkoppeling;
+        location terugkoppeling:
+            edge uterugkoppeling goto uit;
+    end
+
+    svgout id buis+"_camera_"+locatie attr "fill" value if camera_aan: "#bfb900" else "#666666" end;           //actieve camera geel kleuren, gebaseerd op locatie SensorCCTV
+    svgout id buis+"_camera_"+locatie+"_BR" attr "visibility" value if BR_aan: "visible" else "hidden" end;
+end

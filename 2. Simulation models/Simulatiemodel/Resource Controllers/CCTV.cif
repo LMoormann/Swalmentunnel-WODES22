@@ -1,0 +1,663 @@
+import "../../Supervisor/Supervisor.cif";
+
+group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
+                             richtingMee, richtingTegen;
+                    controllable c_selectieRechts, c_selectieLinks;
+                    uncontrollable u_HDwaarschuwingAan, u_HDroodAan;
+                    alg bool VRIAan, ABAan, HPKAan):
+
+  // Inputs
+  plant GewensteStandSchouwen:
+    uncontrollable u_schouwen, u_schouwenHuidig, u_stop;
+    location uit:
+      initial; marked;
+      edge u_schouwen when schouwenAan goto schouwen;
+      edge u_schouwenHuidig when schouwenAanHuidig goto schouwenHuidig;
+    location schouwen:
+      marked;
+      edge u_stop when schouwenUit goto uit;
+      edge u_schouwenHuidig when schouwenAanHuidig goto schouwenHuidig;
+    location schouwenHuidig:
+      marked;
+      edge u_stop when schouwenUit goto uit;
+      edge u_schouwen when schouwenAan goto schouwen;
+  end
+
+  plant GewensteRichting:
+    uncontrollable u_mee, u_tegen;
+    location mee:
+      initial; marked;
+      edge u_tegen when richtingTegen goto tegen;
+    location tegen:
+      marked;
+      edge u_mee when richtingMee goto mee;
+  end
+
+  plant GewensteSelectie:
+    controllable c_klaar;
+    monitor c_selectieRechts, c_selectieLinks;
+    location geen:
+      initial; marked;
+      edge c_selectieRechts goto rechts;
+      edge c_selectieLinks goto links;
+    location rechts:
+      marked;
+      edge c_klaar goto geen;
+      edge c_selectieLinks goto links;
+    location links:
+      marked;
+      edge c_klaar goto geen;
+      edge c_selectieRechts goto rechts;
+  end
+
+  plant VRISensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when VRIAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not VRIAan goto uit;
+  end
+
+  plant ABSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when ABAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not ABAan goto uit;
+  end
+
+  plant HPKSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when HPKAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not HPKAan goto uit;
+  end
+
+  // Outputs
+  plant HuidigeStandSchouwen:
+    controllable c_schouwen, c_schouwenHuidig, c_stop;
+    location uit:
+      initial; marked;
+      edge c_schouwen goto schouwen;
+      edge c_schouwenHuidig goto schouwenhuidig;
+    location schouwen:
+      edge c_stop goto uit;
+      edge c_schouwenHuidig goto schouwenhuidig;
+    location schouwenhuidig:
+      edge c_stop goto uit;
+      edge c_schouwen goto schouwen;
+  end
+
+  plant HuidigeRichting:
+    controllable c_mee, c_tegen;
+    location mee:
+      initial; marked;
+      edge c_tegen goto tegen;
+    location tegen:
+      edge c_mee goto mee;
+  end
+
+  plant HuidigeSelectie:
+    controllable c_links, c_rechts, c_start, c_eind;
+    controllable c_HPK, c_HDwaarschuwing, c_HDrood, c_VRI, c_AB;
+    location toerit:
+      initial; marked;
+      edge c_rechts goto HDwaarschuwing;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location HDwaarschuwing:
+      marked;
+      edge c_rechts goto HDrood;
+      edge c_links goto toerit;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location HDrood:
+      marked;
+      edge c_rechts goto VRI;
+      edge c_links goto HDwaarschuwing;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location VRI:
+      marked;
+      edge c_rechts goto AB;
+      edge c_links goto HDrood;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location AB:
+      marked;
+      edge c_rechts goto ingang;
+      edge c_links goto VRI;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location ingang:
+      marked;
+      edge c_rechts goto sectie1;
+      edge c_links goto AB;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location sectie1:
+      marked;
+      edge c_rechts goto HPK;
+      edge c_links goto ingang;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location HPK:
+      marked;
+      edge c_rechts goto uitgang;
+      edge c_links goto sectie1;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location uitgang:
+      marked;
+      edge c_links goto HPK;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_HDwaarschuwing goto HDwaarschuwing;
+      edge c_HDrood goto HDrood;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+  end
+
+  plant Timer:
+    controllable c_aan, c_resetUit, c_resetLopend, c_herstart;
+    uncontrollable u_timeout;
+
+    location uit:
+      initial; marked;
+      edge c_aan goto lopend;
+    location lopend:
+      edge c_resetLopend goto uit;
+      edge u_timeout goto afgelopen;
+    location afgelopen:
+      edge c_resetUit goto uit;
+      edge c_herstart goto lopend;
+  end
+
+  requirement HuidigeStandSchouwen.c_schouwen needs GewensteStandSchouwen.schouwen;
+  requirement HuidigeStandSchouwen.c_schouwenHuidig needs GewensteStandSchouwen.schouwenHuidig;
+
+  requirement HuidigeRichting.c_mee needs GewensteRichting.mee;
+  requirement HuidigeRichting.c_tegen needs GewensteRichting.tegen;
+
+  requirement HuidigeSelectie.c_rechts needs (HuidigeStandSchouwen.uit and GewensteSelectie.rechts) or
+                                            ((HuidigeStandSchouwen.schouwen or HuidigeStandSchouwen.schouwenhuidig) and HuidigeRichting.mee and Timer.afgelopen);
+  requirement HuidigeSelectie.c_links needs (HuidigeStandSchouwen.uit and GewensteSelectie.links) or
+                                            ((HuidigeStandSchouwen.schouwen or HuidigeStandSchouwen.schouwenhuidig) and HuidigeRichting.tegen and Timer.afgelopen);
+
+  requirement Timer.c_aan needs not HuidigeStandSchouwen.uit;
+  requirement Timer.c_aan needs (HuidigeRichting.mee and not HuidigeSelectie.uitgang) or (HuidigeRichting.tegen and not HuidigeSelectie.toerit);
+  requirement Timer.c_resetLopend needs HuidigeStandSchouwen.uit;
+  requirement Timer.c_resetUit needs HuidigeStandSchouwen.uit or (HuidigeRichting.mee and HuidigeSelectie.uitgang)  or (HuidigeRichting.tegen and HuidigeSelectie.toerit);
+  requirement Timer.c_herstart needs not HuidigeStandSchouwen.uit;
+
+  requirement Links:
+    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge c_selectieLinks when not HuidigeSelectie.toerit goto loc2;
+      edge HuidigeSelectie.c_links, GewensteSelectie.c_klaar;
+    location loc2:
+      edge HuidigeSelectie.c_links goto loc3;
+    location loc3:
+      edge GewensteSelectie.c_klaar, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+  end
+
+  requirement Rechts:
+    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge c_selectieRechts when not HuidigeSelectie.uitgang goto loc2;
+      edge HuidigeSelectie.c_rechts, GewensteSelectie.c_klaar;
+    location loc2:
+      edge HuidigeSelectie.c_rechts goto loc3;
+    location loc3:
+      edge GewensteSelectie.c_klaar, c_selectieLinks, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+  end
+
+  requirement AlterneerTimer:
+    location loc1:
+      initial; marked;
+      edge Timer.c_aan goto loc2;
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts;
+    location loc2:
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts goto loc3;
+      edge Timer.c_resetUit, Timer.c_resetLopend goto loc1;
+    location loc3:
+      edge Timer.c_herstart goto loc2;
+      edge Timer.c_resetUit, Timer.c_resetLopend goto loc1;
+  end
+
+  requirement StartEind:
+    monitor HuidigeStandSchouwen.c_schouwen;
+    location loc1:
+      initial; marked;
+      edge HuidigeStandSchouwen.c_schouwen when HuidigeRichting.mee goto loc2;
+      edge HuidigeStandSchouwen.c_schouwen when HuidigeRichting.tegen goto loc3;
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts;
+    location loc2:
+      edge HuidigeSelectie.c_start goto loc1;
+    location loc3:
+      edge HuidigeSelectie.c_eind goto loc1;
+  end
+
+  requirement def AlterneerSensor(uncontrollable u_sensor_aan; controllable c_camera_selectie):
+    monitor u_sensor_aan;
+    location loc1:
+      initial; marked;
+      edge u_sensor_aan goto loc2;
+    location loc2:
+      edge c_camera_selectie goto loc1;
+  end
+
+  AlterneerHDwaarschuwing: AlterneerSensor(u_HDwaarschuwingAan, HuidigeSelectie.c_HDwaarschuwing);
+  AlterneerHDrood: AlterneerSensor(u_HDroodAan, HuidigeSelectie.c_HDrood);
+  AlterneerVRI: AlterneerSensor(VRISensor.u_aan, HuidigeSelectie.c_VRI);
+  AlterneerAB: AlterneerSensor(ABSensor.u_aan, HuidigeSelectie.c_AB);
+  AlterneerHPK: AlterneerSensor(HPKSensor.u_aan, HuidigeSelectie.c_HPK);
+
+  requirement Stop:
+    monitor u_HDwaarschuwingAan, u_HDroodAan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan,
+    GewensteStandSchouwen.u_stop, c_selectieLinks, c_selectieRechts;
+    location loc1:
+      initial; marked;
+      edge u_HDwaarschuwingAan, u_HDroodAan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan when not HuidigeStandSchouwen.uit goto loc2;
+      edge c_selectieLinks, c_selectieRechts when not HuidigeStandSchouwen.uit goto loc2;
+      edge GewensteStandSchouwen.u_stop when not HuidigeStandSchouwen.uit goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_stop goto loc1;
+  end
+
+  requirement AlterneerSchouwen:
+    monitor GewensteStandSchouwen.u_schouwen;
+    location loc1:
+      initial; marked;
+      edge GewensteStandSchouwen.u_schouwen goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_schouwen goto loc1;
+  end
+
+  requirement AlterneerSchouwenHuidig:
+    monitor GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge GewensteStandSchouwen.u_schouwenHuidig goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_schouwenHuidig goto loc1;
+  end
+end
+
+VB1_unit_CCTV: Unit_CCTV1(VB1.CCTV.Schouwen.uit, VB1.CCTV.Schouwen.schouwen, VB1.CCTV.Schouwen.schouwenHuidig,
+                         VB1.CCTV.Richting.mee, VB1.CCTV.Richting.tegen,
+                         VB1.CCTV.Selectie.c_links, VB1.CCTV.Selectie.c_rechts,
+                         VB1.HoogteDetectieWaarschuwing.Sensor.u_aan, VB1.HoogteDetectieRood.Sensor.u_aan,
+                         not VB1.VRI.Stand.uit, not VB1.AB.Beweging.geen, VB1.HPKA1.SensorOpen.aan or VB1.HPKC1.SensorOpen.aan);
+
+group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
+                             richtingMee, richtingTegen;
+                    controllable c_selectieRechts, c_selectieLinks;
+                    alg bool VRIAan, ABAan, HPKAan):
+
+  // Inputs
+  plant GewensteStandSchouwen:
+    uncontrollable u_schouwen, u_schouwenHuidig, u_stop;
+    location uit:
+      initial; marked;
+      edge u_schouwen when schouwenAan goto schouwen;
+      edge u_schouwenHuidig when schouwenAanHuidig goto schouwenHuidig;
+    location schouwen:
+      marked;
+      edge u_stop when schouwenUit goto uit;
+      edge u_schouwenHuidig when schouwenAanHuidig goto schouwenHuidig;
+    location schouwenHuidig:
+      marked;
+      edge u_stop when schouwenUit goto uit;
+      edge u_schouwen when schouwenAan goto schouwen;
+  end
+
+  plant GewensteRichting:
+    uncontrollable u_mee, u_tegen;
+    location mee:
+      initial; marked;
+      edge u_tegen when richtingTegen goto tegen;
+    location tegen:
+      marked;
+      edge u_mee when richtingMee goto mee;
+  end
+
+  plant GewensteSelectie:
+    controllable c_klaar;
+    monitor c_selectieRechts, c_selectieLinks;
+    location geen:
+      initial; marked;
+      edge c_selectieRechts goto rechts;
+      edge c_selectieLinks goto links;
+    location rechts:
+      marked;
+      edge c_klaar goto geen;
+      edge c_selectieLinks goto links;
+    location links:
+      marked;
+      edge c_klaar goto geen;
+      edge c_selectieRechts goto rechts;
+  end
+
+  plant VRISensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when VRIAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not VRIAan goto uit;
+  end
+
+  plant ABSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when ABAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not ABAan goto uit;
+  end
+
+  plant HPKSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when HPKAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not HPKAan goto uit;
+  end
+
+  // Outputs
+  plant HuidigeStandSchouwen:
+    controllable c_schouwen, c_schouwenHuidig, c_stop;
+    location uit:
+      initial; marked;
+      edge c_schouwen goto schouwen;
+      edge c_schouwenHuidig goto schouwenhuidig;
+    location schouwen:
+      edge c_stop goto uit;
+      edge c_schouwenHuidig goto schouwenhuidig;
+    location schouwenhuidig:
+      edge c_stop goto uit;
+      edge c_schouwen goto schouwen;
+  end
+
+  plant HuidigeRichting:
+    controllable c_mee, c_tegen;
+    location mee:
+      initial; marked;
+      edge c_tegen goto tegen;
+    location tegen:
+      edge c_mee goto mee;
+  end
+
+  plant HuidigeSelectie:
+    controllable c_links, c_rechts, c_start, c_eind;
+    controllable c_HPK, c_VRI, c_AB;
+    location toerit:
+      initial; marked;
+      edge c_rechts goto VRI;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location VRI:
+      marked;
+      edge c_rechts goto AB;
+      edge c_links goto AB;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location AB:
+      marked;
+      edge c_rechts goto ingang;
+      edge c_links goto VRI;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location ingang:
+      marked;
+      edge c_rechts goto HPK;
+      edge c_links goto AB;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location HPK:
+      marked;
+      edge c_rechts goto sectie1;
+      edge c_links goto ingang;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location sectie1:
+      marked;
+      edge c_rechts goto uitgang;
+      edge c_links goto HPK;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+    location uitgang:
+      marked;
+      edge c_links goto HPK;
+      edge c_start goto toerit;
+      edge c_eind goto uitgang;
+
+      edge c_HPK goto HPK;
+      edge c_VRI goto VRI;
+      edge c_AB goto AB;
+  end
+
+  plant Timer:
+    controllable c_aan, c_resetUit, c_resetLopend, c_herstart;
+    uncontrollable u_timeout;
+
+    location uit:
+      initial; marked;
+      edge c_aan goto lopend;
+    location lopend:
+      edge c_resetLopend goto uit;
+      edge u_timeout goto afgelopen;
+    location afgelopen:
+      edge c_resetUit goto uit;
+      edge c_herstart goto lopend;
+  end
+
+  requirement HuidigeStandSchouwen.c_schouwen needs GewensteStandSchouwen.schouwen;
+  requirement HuidigeStandSchouwen.c_schouwenHuidig needs GewensteStandSchouwen.schouwenHuidig;
+
+  requirement HuidigeRichting.c_mee needs GewensteRichting.mee;
+  requirement HuidigeRichting.c_tegen needs GewensteRichting.tegen;
+
+  requirement HuidigeSelectie.c_rechts needs (HuidigeStandSchouwen.uit and GewensteSelectie.rechts) or
+                                            ((HuidigeStandSchouwen.schouwen or HuidigeStandSchouwen.schouwenhuidig) and HuidigeRichting.mee and Timer.afgelopen);
+  requirement HuidigeSelectie.c_links needs (HuidigeStandSchouwen.uit and GewensteSelectie.links) or
+                                            ((HuidigeStandSchouwen.schouwen or HuidigeStandSchouwen.schouwenhuidig) and HuidigeRichting.tegen and Timer.afgelopen);
+
+  requirement Timer.c_aan needs not HuidigeStandSchouwen.uit;
+  requirement Timer.c_aan needs (HuidigeRichting.mee and not HuidigeSelectie.uitgang) or (HuidigeRichting.tegen and not HuidigeSelectie.toerit);
+  requirement Timer.c_resetLopend needs HuidigeStandSchouwen.uit;
+  requirement Timer.c_resetUit needs HuidigeStandSchouwen.uit or (HuidigeRichting.mee and HuidigeSelectie.uitgang)  or (HuidigeRichting.tegen and HuidigeSelectie.toerit);
+  requirement Timer.c_herstart needs not HuidigeStandSchouwen.uit;
+
+  requirement Links:
+    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge c_selectieLinks when not HuidigeSelectie.toerit goto loc2;
+      edge HuidigeSelectie.c_links, GewensteSelectie.c_klaar;
+    location loc2:
+      edge HuidigeSelectie.c_links goto loc3;
+    location loc3:
+      edge GewensteSelectie.c_klaar, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+  end
+
+  requirement Rechts:
+    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge c_selectieRechts when not HuidigeSelectie.uitgang goto loc2;
+      edge HuidigeSelectie.c_rechts, GewensteSelectie.c_klaar;
+    location loc2:
+      edge HuidigeSelectie.c_rechts goto loc3;
+    location loc3:
+      edge GewensteSelectie.c_klaar, c_selectieLinks, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+  end
+
+  requirement AlterneerTimer:
+    location loc1:
+      initial; marked;
+      edge Timer.c_aan goto loc2;
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts;
+    location loc2:
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts goto loc3;
+      edge Timer.c_resetUit, Timer.c_resetLopend goto loc1;
+    location loc3:
+      edge Timer.c_herstart goto loc2;
+      edge Timer.c_resetUit, Timer.c_resetLopend goto loc1;
+  end
+
+  requirement StartEind:
+    monitor HuidigeStandSchouwen.c_schouwen;
+    location loc1:
+      initial; marked;
+      edge HuidigeStandSchouwen.c_schouwen when HuidigeRichting.mee goto loc2;
+      edge HuidigeStandSchouwen.c_schouwen when HuidigeRichting.tegen goto loc3;
+      edge HuidigeSelectie.c_links, HuidigeSelectie.c_rechts;
+    location loc2:
+      edge HuidigeSelectie.c_start goto loc1;
+    location loc3:
+      edge HuidigeSelectie.c_eind goto loc1;
+  end
+
+  requirement def AlterneerSensor(uncontrollable u_sensor_aan; controllable c_camera_selectie):
+    monitor u_sensor_aan;
+    location loc1:
+      initial; marked;
+      edge u_sensor_aan goto loc2;
+    location loc2:
+      edge c_camera_selectie goto loc1;
+  end
+
+  AlterneerVRI: AlterneerSensor(VRISensor.u_aan, HuidigeSelectie.c_VRI);
+  AlterneerAB: AlterneerSensor(ABSensor.u_aan, HuidigeSelectie.c_AB);
+  AlterneerHPK: AlterneerSensor(HPKSensor.u_aan, HuidigeSelectie.c_HPK);
+
+  requirement Stop:
+    monitor VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan,
+    GewensteStandSchouwen.u_stop, c_selectieLinks, c_selectieRechts;
+    location loc1:
+      initial; marked;
+      edge VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan when not HuidigeStandSchouwen.uit goto loc2;
+      edge c_selectieLinks, c_selectieRechts when not HuidigeStandSchouwen.uit goto loc2;
+      edge GewensteStandSchouwen.u_stop when not HuidigeStandSchouwen.uit goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_stop goto loc1;
+  end
+
+  requirement AlterneerSchouwen:
+    monitor GewensteStandSchouwen.u_schouwen;
+    location loc1:
+      initial; marked;
+      edge GewensteStandSchouwen.u_schouwen goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_schouwen goto loc1;
+  end
+
+  requirement AlterneerSchouwenHuidig:
+    monitor GewensteStandSchouwen.u_schouwenHuidig;
+    location loc1:
+      initial; marked;
+      edge GewensteStandSchouwen.u_schouwenHuidig goto loc2;
+    location loc2:
+      edge HuidigeStandSchouwen.c_schouwenHuidig goto loc1;
+  end
+end
+
+VB2_unit_CCTV: Unit_CCTV2(VB2.CCTV.Schouwen.uit, VB2.CCTV.Schouwen.schouwen, VB2.CCTV.Schouwen.schouwenHuidig,
+                         VB2.CCTV.Richting.mee, VB2.CCTV.Richting.tegen,
+                         VB2.CCTV.Selectie.c_rechts, VB2.CCTV.Selectie.c_links,
+                         not VB2.VRI.Stand.uit, not VB2.AB.Beweging.geen, VB2.HPKA1.SensorOpen.aan or VB2.HPKC1.SensorOpen.aan);

@@ -1,0 +1,6 @@
+import "Actuator.cif", "Timer.cif";
+
+group def J32():
+  Stand:                Actuator(true,false);
+
+end

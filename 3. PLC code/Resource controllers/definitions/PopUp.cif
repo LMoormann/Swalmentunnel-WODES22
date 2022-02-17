@@ -1,0 +1,12 @@
+import "Actuator.cif", "Timer.cif";
+
+group def PopUp():
+  Venster: Actuator(true,false);
+  Timer: ^Timer();
+
+	requirement Venster.c_aan needs Timer.uit;
+	requirement Timer.c_aan	needs Venster.aan;
+	requirement Timer.c_resetAfgelopen needs Venster.uit;
+ 	requirement Timer.c_resetLopend	needs Venster.uit;
+end
+

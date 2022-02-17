@@ -1,0 +1,9 @@
+plant def SetAuto(controllable c_operationeel1, c_standby1, c_calamiteit1, c_evacuatie1, c_herstelUitCalimiteit1, c_herstelUitOndersteunend1, c_herstelUitOnderhoud1, c_ondersteunend1, c_onderhoud1):
+  controllable c_klaar;
+
+  location normaal:
+    initial; marked;
+    edge c_operationeel1, c_standby1, c_calamiteit1, c_evacuatie1, c_herstelUitCalimiteit1, c_herstelUitOndersteunend1, c_herstelUitOnderhoud1, c_ondersteunend1, c_onderhoud1 goto setauto;
+  location setauto:
+    edge c_klaar goto normaal;
+end

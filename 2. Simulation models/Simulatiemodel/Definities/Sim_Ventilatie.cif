@@ -1,0 +1,44 @@
+group def Sim_Ventilatie(alg int stand;
+                         controllable c_aan, c_resetLopend, c_resetUit, c_herstart;
+                         uncontrollable u_timeout;
+                         alg string locatie, buis):
+
+  plant HybrideTimer:
+
+    cont t = 0 der if uit:       0
+                 elif afgelopen: 0
+                 else -1 end;
+
+    location uit:
+        initial; marked;
+        edge c_aan do t := 2 goto lopend;
+    location lopend:
+        edge c_resetLopend goto uit;
+        edge u_timeout when t <= 0 goto afgelopen;
+    location afgelopen:
+        edge c_resetUit goto uit;
+        edge c_herstart do t := 2 goto lopend;
+  end
+
+  svgout id buis+locatie+"_stand_1" attr  "fill" value
+                                   if abs(stand-8)>0: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_2" attr  "fill" value
+                                   if abs(stand-8)>1: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_3" attr  "fill" value
+                                   if abs(stand-8)>2: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_4" attr  "fill" value
+                                   if abs(stand-8)>3: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_5" attr  "fill" value
+                                   if abs(stand-8)>4: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_6" attr  "fill" value
+                                   if abs(stand-8)>5: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_7" attr  "fill" value
+                                   if abs(stand-8)>6: "yellow" else "none" end;
+  svgout id buis+locatie+"_stand_8" attr  "fill" value
+                                   if abs(stand-8)>7: "yellow" else "none" end;
+  svgout id buis+locatie+"_richting_mee" attr "opacity" value
+                                   if stand>8: "1" else "0" end;
+  svgout id buis+locatie+"_richting_tegen" attr "opacity" value
+                                   if stand<8: "1" else "0" end;
+
+end

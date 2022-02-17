@@ -1,0 +1,44 @@
+group def Sim_PompkelderSchoon(event   sensor_laagwater_aan, sensor_laagwater_uit,
+                                sensor_startwater_aan, sensor_startwater_uit,
+                                sensor_maxstartwater_aan, sensor_maxstartwater_uit,
+                                sensor_laaghoogwater_aan, sensor_laaghoogwater_uit,
+                                sensor_hooghoogwater_aan, sensor_hooghoogwater_uit;
+                        alg bool pomp_aan, instroom;
+                        alg real volume_instroom):
+
+    alg real volume_uitstroom = if pomp_aan: 30
+                                else 0 end;
+
+    const real leeg = 5,laagwater = 100, startwater = 200, maxstartwater = 300,
+               laaghoogwater = 400, hooghoogwater = 500, vol = 600;
+
+    cont waterniveau = 5 der
+        if   waterniveau >= vol  and (volume_instroom-volume_uitstroom > 0): 0
+        elif waterniveau <= leeg and (volume_instroom-volume_uitstroom < 0): 0
+        elif pomp_aan or instroom: volume_instroom-volume_uitstroom
+        else 0 end;
+
+    plant positie_water_observator:
+        location: initial;
+        edge sensor_laagwater_aan     when waterniveau >  laagwater+5;
+        edge sensor_laagwater_uit     when waterniveau <  laagwater;
+        edge sensor_startwater_aan    when waterniveau >  startwater+5;
+        edge sensor_startwater_uit    when waterniveau <  startwater;
+        edge sensor_maxstartwater_aan when waterniveau >  maxstartwater+5;
+        edge sensor_maxstartwater_uit when waterniveau <  maxstartwater;
+        edge sensor_laaghoogwater_aan when waterniveau >  laaghoogwater+5;
+        edge sensor_laaghoogwater_uit when waterniveau <  laaghoogwater;
+        edge sensor_hooghoogwater_aan when waterniveau >  hooghoogwater;
+        edge sensor_hooghoogwater_uit when waterniveau <  hooghoogwater;
+    end
+
+    svgout id "pompkelder_schoonwater" attr "height" value scale(waterniveau, 0, vol, 0, 181);
+    //svgout id "schoonwater_instroom" attr "fill" value if instroom: "#2c7081" else "#ededed" end;
+    svgout id "schoonwater_instroom" attr "stroke-width" value if volume_instroom >30: 3
+                                                 elif volume_instroom >15: 2
+                                                 elif volume_instroom >0 : 1
+                                                 else 0 end;
+    svgout id "pomp_schoonwater_aan" attr "opacity" value if pomp_aan: "1" else "0" end;
+    svgout id "pomp_schoonwater_uit" attr "opacity" value if pomp_aan: "0" else "1" end;
+    svgout id "schoonwater_uitstroom" attr "opacity" value if pomp_aan: "1" else "0" end;
+end

@@ -1,0 +1,82 @@
+import "Actuator.cif", "Sensor.cif";
+
+group def Afsluitboom():
+
+  plant Stand:
+    uncontrollable u_op, u_opverlaten, u_neer;
+    location op:
+      initial; marked;
+      edge u_opverlaten goto opverlaten;
+    location opverlaten:
+      edge u_op goto op;
+      edge u_neer goto neer;
+    location neer:
+      edge u_opverlaten goto opverlaten;
+  end
+
+  plant Beweging:
+    uncontrollable u_op, u_neer, u_geen;
+    location geen:
+      initial; marked;
+      edge u_op goto op;
+      edge u_neer goto neer;
+    location op:
+      edge u_neer goto neer;
+      edge u_geen goto geen;
+    location neer:
+      edge u_op goto op;
+      edge u_geen goto geen;
+  end
+
+  plant Commando:
+    controllable c_opneer, c_opstop, c_opneeronvoorwaardelijk, c_neerop, c_neerstop, c_neerneeronvoorwaardelijk, c_stopneer, c_stopop, c_stopneeronvoorwaardelijk, c_neeronvoorwaardelijkneer, c_neeronvoorwaardelijkstop, c_neeronvoorwaardelijkop;
+    location op:
+      initial; marked;
+      edge c_opneer goto neer;
+      edge c_opstop goto stop;
+      edge c_opneeronvoorwaardelijk goto neeronvoorwaardelijk;
+    location neer:
+      edge c_neerop goto op;
+      edge c_neerstop goto stop;
+      edge c_neerneeronvoorwaardelijk goto neeronvoorwaardelijk;
+    location stop:
+      edge c_stopneer goto neer;
+      edge c_stopop goto op;
+      edge c_stopneeronvoorwaardelijk goto neeronvoorwaardelijk;
+    location neeronvoorwaardelijk:
+      edge c_neeronvoorwaardelijkneer goto neer;
+      edge c_neeronvoorwaardelijkstop goto stop;
+      edge c_neeronvoorwaardelijkop goto op;
+  end
+
+  ObstakelDetectie: Sensor(true,true,false);
+
+  //Fysieke eisen
+  requirement Stand.op or Beweging.op disables {Commando.c_neerop, Commando.c_stopop, Commando.c_neeronvoorwaardelijkop};
+  requirement ObstakelDetectie.aan disables {Commando.c_opneer, Commando.c_stopneer, Commando.c_neeronvoorwaardelijkneer};
+  requirement Stand.neer or Beweging.neer disables {Commando.c_opneer, Commando.c_stopneer, Commando.c_neeronvoorwaardelijkneer};
+  requirement Stand.neer or Beweging.neer disables {Commando.c_opneeronvoorwaardelijk, Commando.c_neerneeronvoorwaardelijk, Commando.c_stopneeronvoorwaardelijk};
+  requirement Beweging.geen disables {Commando.c_opstop, Commando.c_neerstop, Commando.c_neeronvoorwaardelijkstop};
+
+end
+
+plant def ToegangAfsluitboom():
+  controllable c_opneer, c_opstop, c_opneeronvoorwaardelijk, c_neerop, c_neerstop, c_neerneeronvoorwaardelijk, c_stopneer, c_stopop, c_stopneeronvoorwaardelijk, c_neeronvoorwaardelijkneer, c_neeronvoorwaardelijkstop, c_neeronvoorwaardelijkop;
+  location op:
+    initial; marked;
+    edge c_opneer goto neer;
+    edge c_opstop goto stop;
+    edge c_opneeronvoorwaardelijk goto neeronvoorwaardelijk;
+  location neer:
+    edge c_neerop goto op;
+    edge c_neerstop goto stop;
+    edge c_neerneeronvoorwaardelijk goto neeronvoorwaardelijk;
+  location stop:
+    edge c_stopneer goto neer;
+    edge c_stopop goto op;
+    edge c_stopneeronvoorwaardelijk goto neeronvoorwaardelijk;
+  location neeronvoorwaardelijk:
+    edge c_neeronvoorwaardelijkneer goto neer;
+    edge c_neeronvoorwaardelijkstop goto stop;
+    edge c_neeronvoorwaardelijkop goto op;
+end

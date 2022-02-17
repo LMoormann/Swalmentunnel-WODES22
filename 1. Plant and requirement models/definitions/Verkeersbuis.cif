@@ -1,0 +1,564 @@
+import "Hulppostkast.cif", "Rookdetectie.cif", "PopUp.cif", "Ventilatie.cif", "SetAuto.cif", "J32.cif", "Afsluitboom.cif", "Verkeerslicht.cif",
+"Primair.cif", "HoogteDetectie.cif", "Verlichting.cif", "Lichtsensor.cif", "CCTV.cif", "Omroep.cif", "Vluchtdeur.cif";
+
+group def Verkeersbuis1():
+
+  PopUp: ^PopUp();
+
+  plant Stand:
+    controllable  c_operationeel, c_calamiteit, c_standby, c_ondersteunend, c_onderhoud, c_herstelUitCalimiteit, c_herstelUitOndersteunend, c_herstelUitOnderhoud, c_evacuatie;
+    location operationeel:
+      initial; marked;
+      edge c_calamiteit goto calamiteit;
+      edge c_standby goto standby;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_onderhoud goto onderhoud;
+    location standby:
+      edge c_operationeel goto operationeel;
+      edge c_calamiteit goto calamiteit;
+      edge c_ondersteunend goto ondersteunend;
+    location calamiteit:
+      edge c_herstelUitCalimiteit goto herstel;
+      edge c_evacuatie goto evacuatie;
+    location evacuatie:
+      edge c_calamiteit goto calamiteit;
+    location herstel:
+      edge c_operationeel goto operationeel;
+      edge c_calamiteit goto calamiteit;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_onderhoud goto onderhoud;
+    location ondersteunend:
+      edge c_herstelUitOndersteunend goto herstel;
+    location onderhoud:
+      edge c_operationeel goto operationeel;
+      edge c_herstelUitOnderhoud goto herstel;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_calamiteit goto calamiteit;
+  end
+
+  SetAuto: ^SetAuto(Stand.c_operationeel, Stand.c_standby, Stand.c_calamiteit, Stand.c_evacuatie, Stand.c_herstelUitCalimiteit, Stand.c_herstelUitOndersteunend, Stand.c_herstelUitOnderhoud, Stand.c_ondersteunend, Stand.c_onderhoud);
+
+  HPKA1: ^HulppostkastA();
+  HPKC1: ^HulppostkastC();
+  Rookdetectie: ^Rookdetectie();
+  SOS: Sensor(true, true, false);
+
+  plant KnoppenVBafsluiter:
+    uncontrollable u_primairVRIrood, u_primairVRIuit, u_primairVBdicht, u_primairVBopen, u_VRIrood, u_VRIknipper, u_VRIuit, u_ABstop, u_ABopen, u_ABsluit, u_ABsluitOnv, u_resetHD;
+    controllable c_primairVRIrood_klaar, c_primairVRIuit_klaar, c_primairVBdicht_klaar, c_primairVBopen_klaar, c_VRIrood_klaar, c_VRIknipper_klaar, c_VRIuit_klaar, c_ABstop_klaar, c_ABopen_klaar, c_ABsluit_klaar, c_ABsluitOnv_klaar, c_resetHD_klaar;
+    monitor u_primairVRIrood, u_primairVRIuit, u_primairVBdicht, u_primairVBopen, u_VRIrood, u_VRIknipper, u_VRIuit, u_ABstop, u_ABopen, u_ABsluit, u_ABsluitOnv, u_resetHD;
+    location los:
+      initial; marked;
+      edge u_primairVRIrood when BedieningVRI.auto and not PrimairVRI.rood goto primairVRIrood;
+      edge u_primairVRIuit when BedieningVRI.auto and not PrimairVRI.uit goto primairVRIuit;
+      edge u_primairVBdicht when BedieningVRI.auto and BedieningAB.auto and (not PrimairVRI.rood or not PrimairAB.dicht) goto primairVBdicht;
+      edge u_primairVBopen when BedieningVRI.auto and BedieningAB.auto and (not PrimairVRI.uit or not PrimairAB.open) goto primairVBopen;
+      edge u_VRIrood when BedieningVRI.hand goto VRIrood;
+      edge u_VRIknipper when BedieningVRI.hand goto VRIknipper;
+      edge u_VRIuit when BedieningVRI.hand goto VRIuit;
+      edge u_ABstop when BedieningAB.hand goto ABstop;
+      edge u_ABopen when BedieningAB.hand goto ABopen;
+      edge u_ABsluit when BedieningAB.hand goto ABsluit;
+      edge u_ABsluitOnv when BedieningAB.hand goto ABsluitOnv;
+      edge u_resetHD when HoogteDetectieRood.Lampen.aan and HoogteDetectieRood.Timer.afgelopen goto resetHD;
+    location primairVRIrood:
+      edge c_primairVRIrood_klaar when PrimairVRI.rood goto los;
+    location primairVRIuit:
+      edge c_primairVRIuit_klaar when PrimairVRI.uit goto los;
+    location primairVBdicht:
+      edge c_primairVBdicht_klaar when PrimairVRI.rood and PrimairAB.dicht goto los;
+    location primairVBopen:
+      edge c_primairVBopen_klaar when PrimairVRI.uit and PrimairAB.open goto los;
+    location VRIrood:
+      edge c_VRIrood_klaar when ToegangVRI.rood goto los;
+    location VRIknipper:
+      edge c_VRIknipper_klaar when ToegangVRI.knipper goto los;
+    location VRIuit:
+      edge c_VRIuit_klaar when ToegangVRI.uit goto los;
+    location ABstop:
+      edge c_ABstop_klaar when ToegangAB.stop goto los;
+    location ABopen:
+      edge c_ABopen_klaar when ToegangAB.op goto los;
+    location ABsluit:
+      edge c_ABsluit_klaar when ToegangAB.neer goto los;
+    location ABsluitOnv:
+      edge c_ABsluitOnv_klaar when ToegangAB.neeronvoorwaardelijk goto los;
+    location resetHD:
+      edge c_resetHD_klaar when HoogteDetectieRood.Lampen.uit goto los;
+  end
+
+  PrimairVRI: ^PrimairVRI();
+  PrimairAB: ^PrimairAB();
+
+  HoogteDetectieAdvies: HoogteDetectie();
+  HoogteDetectieToerit: HoogteDetectie();
+  HoogteDetectieWaarschuwing: HoogteDetectie();
+  HoogteDetectieRood: HoogteDetectie();
+
+  J32: ^J32();
+
+  VRI: ^Verkeerslicht();
+  ToegangVRI: ^ToegangVerkeerslicht();
+  BedieningVRI: ^Bediening();
+  plant KnoppenBedieningVRI:
+    uncontrollable u_auto, u_hand;
+    controllable c_auto_klaar, c_hand_klaar;
+    monitor u_auto, u_hand;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+    location auto:
+      edge c_auto_klaar when BedieningVRI.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningVRI.hand goto los;
+  end
+
+  AB: Afsluitboom();
+  ToegangAB: ^ToegangAfsluitboom();
+  BedieningAB: Bediening();
+  plant KnoppenBedieningAB:
+    uncontrollable u_auto, u_hand;
+    controllable c_auto_klaar, c_hand_klaar;
+    monitor u_auto, u_hand;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+    location auto:
+      edge c_auto_klaar when BedieningAB.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningAB.hand goto los;
+  end
+
+  Ventilatie: ^Ventilatie(SetAuto.setauto);
+
+  Lichtsensor: ^Lichtsensor();
+  Verlichting: ^Verlichting(SetAuto.setauto);
+
+  CCTV: ^CCTV();
+  Beeldregistratie: Actuator(true,false);
+  plant KnoppenCCTV:
+    uncontrollable u_schouwen, u_shouwenTegen, u_schouwenHuidig, u_schouwenHuidigTegen, u_schouwenStop, u_rechts, u_links;
+    controllable c_schouwen_klaar, c_shouwenTegen_klaar, c_schouwenHuidig_klaar, c_schouwenHuidigTegen_klaar, c_schouwenStop_klaar, c_rechts_klaar, c_links_klaar;
+    monitor u_schouwen, u_shouwenTegen, u_schouwenHuidig, u_schouwenHuidigTegen, u_schouwenStop, u_rechts, u_links;
+    location los:
+      initial; marked;
+      edge u_schouwen goto schouwen;
+      edge u_shouwenTegen goto schouwenTegen;
+      edge u_schouwenHuidig goto schouwenHuidig;
+      edge u_schouwenHuidigTegen goto schouwenHuidigTegen;
+      edge u_schouwenStop goto schouwenStop;
+      edge u_rechts goto rechts;
+      edge u_links goto links;
+    location schouwen:
+      edge c_schouwen_klaar when CCTV.Schouwen.schouwen and CCTV.Richting.mee goto los;
+    location schouwenTegen:
+      edge c_shouwenTegen_klaar when CCTV.Schouwen.schouwen and CCTV.Richting.tegen goto los;
+    location schouwenHuidig:
+      edge c_schouwenHuidig_klaar when CCTV.Schouwen.schouwenHuidig and CCTV.Richting.mee goto los;
+    location schouwenHuidigTegen:
+      edge c_schouwenHuidigTegen_klaar when CCTV.Schouwen.schouwenHuidig and CCTV.Richting.tegen goto los;
+    location schouwenStop:
+      edge c_schouwenStop_klaar when CCTV.Schouwen.uit goto los;
+    location rechts:
+      edge c_rechts_klaar when CCTV.Selectie.rechts and CCTV.Schouwen.uit goto los;
+    location links:
+      edge c_links_klaar when CCTV.Selectie.links and CCTV.Schouwen.uit goto los;
+  end
+
+  Omroep: ^Omroep();
+
+  Vluchtdeur: ^Vluchtdeur(SetAuto.setauto);
+
+  // SetAuto
+  requirement SetAuto.c_klaar needs Ventilatie.Bediening.auto and BedieningAB.auto and BedieningVRI.auto and Verlichting.Bediening.auto
+                                and Vluchtdeur.BedieningGeluidsbaken.auto and Vluchtdeur.BedieningContourVerlichting.auto;
+
+  // PrimairVRI
+  requirement PrimairVRI.c_roodauto needs SetAuto.setauto;
+  requirement PrimairVRI.c_uitauto needs SetAuto.setauto or (HoogteDetectieRood.Sensor.aan and KnoppenVBafsluiter.los);
+  requirement PrimairVRI.c_rood needs (KnoppenVBafsluiter.primairVRIrood or KnoppenVBafsluiter.primairVBdicht) and not SetAuto.setauto;
+  requirement PrimairVRI.c_uit needs (KnoppenVBafsluiter.primairVRIuit or KnoppenVBafsluiter.primairVBopen) and not SetAuto.setauto;
+
+  // PrimairVB
+  requirement PrimairAB.c_auto needs SetAuto.setauto;
+  requirement PrimairAB.c_dicht needs KnoppenVBafsluiter.primairVBdicht and not SetAuto.setauto;
+  requirement PrimairAB.c_open needs KnoppenVBafsluiter.primairVBopen and not SetAuto.setauto;
+
+  // Hoogtedetectie
+  requirement HoogteDetectieRood.Lampen.c_uit needs KnoppenVBafsluiter.resetHD;
+
+  // J32
+  requirement J32.Stand.c_aan needs not VRI.Stand.uit or VRI.TimerVrijgaveAan.lopend;
+  requirement J32.Stand.c_uit needs VRI.Stand.uit and VRI.TimerVrijgaveAan.uit;
+
+  // Verkeerslichten
+  requirement BedieningVRI.c_hand needs KnoppenBedieningVRI.hand and not SetAuto.setauto;
+  requirement BedieningVRI.c_auto needs KnoppenBedieningVRI.auto or SetAuto.setauto;
+  requirement {ToegangVRI.c_uitrood, ToegangVRI.c_knipperrood} needs (BedieningVRI.auto and PrimairVRI.rood)
+                                                                  or (BedieningVRI.hand and KnoppenVBafsluiter.VRIrood)
+                                                                  or (BedieningVRI.auto and (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairVRI.uit)
+                                                                  or (BedieningVRI.auto and HoogteDetectieRood.Sensor.aan);
+  requirement ToegangVRI.c_knipperuit needs (BedieningVRI.auto and PrimairVRI.uit and HoogteDetectieWaarschuwing.Sensor.uit and HoogteDetectieRood.Sensor.uit)
+                                         or (BedieningVRI.hand and KnoppenVBafsluiter.VRIuit)
+                                         or (BedieningVRI.auto and not PrimairVRI.rood and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and HoogteDetectieWaarschuwing.Sensor.uit and HoogteDetectieWaarschuwing.Timer.uit and HoogteDetectieRood.Sensor.uit);
+  requirement ToegangVRI.c_rooduit needs (BedieningVRI.auto and PrimairVRI.uit and HoogteDetectieWaarschuwing.Sensor.uit and HoogteDetectieRood.Sensor.uit and HoogteDetectieRood.Timer.uit)
+                                      or (BedieningVRI.hand and KnoppenVBafsluiter.VRIuit)
+                                      or (BedieningVRI.auto and not PrimairVRI.rood and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and HoogteDetectieWaarschuwing.Sensor.uit and HoogteDetectieRood.Sensor.uit and HoogteDetectieRood.Timer.uit);
+  requirement {ToegangVRI.c_uitknipper, ToegangVRI.c_roodknipper} needs (BedieningVRI.hand and KnoppenVBafsluiter.VRIknipper)
+                                                                     or (BedieningVRI.auto and HoogteDetectieWaarschuwing.Sensor.aan and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and HoogteDetectieRood.Sensor.uit and KnoppenVBafsluiter.los and not PrimairVRI.rood);
+  requirement VRI.TimerVrijgaveAan.c_aan needs not ToegangVRI.uit;
+  requirement VRI.Stand.c_uitknipper needs not ToegangVRI.uit and (VRI.TimerVrijgaveAan.afgelopen or (HoogteDetectieRood.Lampen.aan and BedieningVRI.auto));
+  requirement VRI.Stand.c_geel needs (VRI.TimerVrijgaveGeel.afgelopen and ToegangVRI.rood) or (HoogteDetectieRood.Lampen.aan and BedieningVRI.auto);
+  requirement VRI.Stand.c_rood needs ToegangVRI.rood;
+  requirement VRI.Stand.c_uit needs ToegangVRI.uit and (HoogteDetectieRood.Lampen.uit or BedieningVRI.hand);
+  requirement VRI.Stand.c_geelknipper needs ToegangVRI.knipper and (HoogteDetectieRood.Lampen.uit or BedieningVRI.hand);
+  requirement VRI.Stand.c_roodknipper needs not ToegangVRI.rood;
+
+  // Afsluitbomen
+  requirement BedieningAB.c_hand needs KnoppenBedieningAB.hand and not SetAuto.setauto;
+  requirement BedieningAB.c_auto needs KnoppenBedieningAB.auto or SetAuto.setauto;
+  requirement {ToegangAB.c_neerop, ToegangAB.c_stopop, ToegangAB.c_neeronvoorwaardelijkop} needs (BedieningAB.auto and PrimairAB.open)
+                                                                                              or (BedieningAB.hand and KnoppenVBafsluiter.ABopen)
+                                                                                              or (BedieningAB.auto and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairAB.dicht);
+  requirement {ToegangAB.c_opneer, ToegangAB.c_stopneer, ToegangAB.c_neeronvoorwaardelijkneer} needs (BedieningAB.auto and PrimairAB.dicht)
+                                                                                                  or (BedieningAB.hand and KnoppenVBafsluiter.ABsluit)
+                                                                                                  or (BedieningAB.auto and (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairAB.open);
+  requirement {ToegangAB.c_opstop, ToegangAB.c_neerstop, ToegangAB.c_neeronvoorwaardelijkstop} needs (BedieningAB.hand and KnoppenVBafsluiter.ABstop);
+  requirement {ToegangAB.c_opneeronvoorwaardelijk, ToegangAB.c_neerneeronvoorwaardelijk, ToegangAB.c_stopneeronvoorwaardelijk} needs (BedieningAB.hand and KnoppenVBafsluiter.ABsluitOnv);
+  requirement {AB.Commando.c_neerop, AB.Commando.c_stopop, AB.Commando.c_neeronvoorwaardelijkop} needs ToegangAB.op;
+  requirement {AB.Commando.c_opneer, AB.Commando.c_stopneer, AB.Commando.c_neeronvoorwaardelijkneer} needs ToegangAB.neer and VRI.Stand.rood and not AB.ObstakelDetectie.aan and VRI.TimerVrijgavesignaal.afgelopen;
+  requirement {AB.Commando.c_opstop, AB.Commando.c_neerstop, AB.Commando.c_neeronvoorwaardelijkstop} needs ToegangAB.stop;
+  requirement {AB.Commando.c_opneeronvoorwaardelijk, AB.Commando.c_neerneeronvoorwaardelijk, AB.Commando.c_stopneeronvoorwaardelijk} needs ToegangAB.neeronvoorwaardelijk;
+
+  // Ventilatie
+  requirement Ventilatie.Richting.c_rijrichting needs (Ventilatie.Bediening.hand and Ventilatie.Knoppen.rijrichting) or (Ventilatie.Bediening.auto and not Stand.ondersteunend);
+  requirement Ventilatie.Richting.c_tegenRijrichting needs (Ventilatie.Bediening.hand and Ventilatie.Knoppen.tegenRijrichting) or (Ventilatie.Bediening.auto and Stand.ondersteunend);
+  requirement Ventilatie.Stand.c_0 needs (Ventilatie.Bediening.auto and (Stand.operationeel and Rookdetectie.stand0)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s0);
+  requirement Ventilatie.Stand.c_1 needs (Ventilatie.Bediening.auto and (Stand.operationeel and Rookdetectie.stand1)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s1);
+  requirement Ventilatie.Stand.c_2 needs (Ventilatie.Bediening.auto and ((Stand.operationeel and Rookdetectie.stand2) or ((Stand.onderhoud or Stand.herstel) and (Rookdetectie.stand0 or Rookdetectie.stand1 or Rookdetectie.stand2)))) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s2);
+  requirement Ventilatie.Stand.c_3 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel) and Rookdetectie.stand3)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s3);
+  requirement Ventilatie.Stand.c_4 needs (Ventilatie.Bediening.auto and (((Stand.operationeel or Stand.onderhoud or Stand.herstel) and Rookdetectie.stand4) or ((Stand.standby or Stand.ondersteunend) and (Rookdetectie.stand0 or Rookdetectie.stand1 or Rookdetectie.stand2 or Rookdetectie.stand3 or Rookdetectie.stand4)))) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s4);
+  requirement Ventilatie.Stand.c_5 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand5)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s5);
+  requirement Ventilatie.Stand.c_6 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand6)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s6);
+  requirement Ventilatie.Stand.c_7 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand7)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s7);
+  requirement Ventilatie.Stand.c_8 needs (Ventilatie.Bediening.auto and (((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand8) or Stand.calamiteit or Stand.evacuatie)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s8);
+
+  // Verlichting
+  requirement Verlichting.Stand.c_0 needs (Lichtsensor.stand0 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s0 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_1 needs (Lichtsensor.stand1 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s1 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_2 needs (Lichtsensor.stand2 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s2 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_3 needs (Lichtsensor.stand3 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s3 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_4 needs (Lichtsensor.stand4 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s4 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_5 needs (Lichtsensor.stand5 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s5 and Verlichting.Bediening.hand) or ((Stand.onderhoud or Stand.herstel) and Verlichting.Bediening.auto);
+  requirement Verlichting.Stand.c_6 needs (Lichtsensor.stand6 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s6 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_7 needs (Lichtsensor.stand7 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s7 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_8 needs (Lichtsensor.stand8 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s8 and Verlichting.Bediening.hand) or ((Stand.standby or Stand.calamiteit or Stand.ondersteunend or Stand.evacuatie) and Verlichting.Bediening.auto);
+
+  // CCTV
+  requirement Beeldregistratie.c_aan needs Stand.standby or Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend;
+  requirement Beeldregistratie.c_uit needs not (Stand.standby or Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend);
+  requirement CCTV.Schouwen.c_schouwen needs KnoppenCCTV.schouwen or KnoppenCCTV.schouwenTegen;
+  requirement CCTV.Schouwen.c_schouwenHuidig needs KnoppenCCTV.schouwenHuidig or KnoppenCCTV.schouwenHuidigTegen;
+  requirement CCTV.Schouwen.c_stop needs KnoppenCCTV.schouwenStop or KnoppenCCTV.rechts or KnoppenCCTV.links;
+  requirement CCTV.Richting.c_mee needs KnoppenCCTV.schouwen or KnoppenCCTV.schouwenHuidig;
+  requirement CCTV.Richting.c_tegen needs KnoppenCCTV.schouwenTegen or KnoppenCCTV.schouwenHuidigTegen;
+  requirement CCTV.Selectie.c_rechts needs KnoppenCCTV.rechts;
+  requirement CCTV.Selectie.c_links needs KnoppenCCTV.links;
+  requirement CCTV.Selectie.c_klaar needs not KnoppenCCTV.rechts and not KnoppenCCTV.links;
+
+  // Omroep
+  requirement Omroep.Modus.c_startlive needs Omroep.Knoppen.startLive;
+  requirement Omroep.Modus.c_stoplive needs Omroep.Knoppen.stopLive;
+  requirement Omroep.Modus.c_startboodschap needs Omroep.Knoppen.startBoodschap or (Stand.evacuatie and Omroep.Knoppen.los);
+  requirement Omroep.Modus.c_stopboodschap needs Omroep.Knoppen.stopBoodschap;
+
+  requirement Omroep.Gebied.c_buis needs Omroep.Knoppen.buis or (Stand.evacuatie and Omroep.Knoppen.los);
+  requirement Omroep.Gebied.c_sectie needs Omroep.Knoppen.sectie;
+
+  // Vluchtdeur
+  requirement Vluchtdeur.Geluidsbaken.c_aan needs (Vluchtdeur.BedieningGeluidsbaken.hand and Vluchtdeur.KnoppenGeluidsbaken.aan)
+                                               or (Vluchtdeur.BedieningGeluidsbaken.auto and Stand.evacuatie);
+  requirement Vluchtdeur.Geluidsbaken.c_uit needs (Vluchtdeur.BedieningGeluidsbaken.hand and Vluchtdeur.KnoppenGeluidsbaken.uit)
+                                               or (Vluchtdeur.BedieningGeluidsbaken.auto and not Stand.evacuatie);
+  requirement Vluchtdeur.ContourVerlichting.c_aan needs (Vluchtdeur.BedieningContourVerlichting.hand and Vluchtdeur.KnoppenContourVerlichting.aan)
+                                                     or (Vluchtdeur.BedieningContourVerlichting.auto and Stand.evacuatie);
+  requirement Vluchtdeur.ContourVerlichting.c_uit needs (Vluchtdeur.BedieningContourVerlichting.hand and Vluchtdeur.KnoppenContourVerlichting.uit)
+                                                     or (Vluchtdeur.BedieningContourVerlichting.auto and not Stand.evacuatie);
+
+end
+
+group def Verkeersbuis2():
+
+  PopUp: ^PopUp();
+
+  plant Stand:
+    controllable  c_operationeel, c_calamiteit, c_standby, c_ondersteunend, c_onderhoud, c_herstelUitCalimiteit, c_herstelUitOndersteunend, c_herstelUitOnderhoud, c_evacuatie;
+    location operationeel:
+      initial; marked;
+      edge c_calamiteit goto calamiteit;
+      edge c_standby goto standby;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_onderhoud goto onderhoud;
+    location standby:
+      edge c_operationeel goto operationeel;
+      edge c_calamiteit goto calamiteit;
+      edge c_ondersteunend goto ondersteunend;
+    location calamiteit:
+      edge c_herstelUitCalimiteit goto herstel;
+      edge c_evacuatie goto evacuatie;
+    location evacuatie:
+      edge c_calamiteit goto calamiteit;
+    location herstel:
+      edge c_operationeel goto operationeel;
+      edge c_calamiteit goto calamiteit;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_onderhoud goto onderhoud;
+    location ondersteunend:
+      edge c_herstelUitOndersteunend goto herstel;
+    location onderhoud:
+      edge c_operationeel goto operationeel;
+      edge c_herstelUitOnderhoud goto herstel;
+      edge c_ondersteunend goto ondersteunend;
+      edge c_calamiteit goto calamiteit;
+  end
+
+  SetAuto: ^SetAuto(Stand.c_operationeel, Stand.c_standby, Stand.c_calamiteit, Stand.c_evacuatie, Stand.c_herstelUitCalimiteit, Stand.c_herstelUitOndersteunend, Stand.c_herstelUitOnderhoud, Stand.c_ondersteunend, Stand.c_onderhoud);
+
+  HPKA1: ^HulppostkastA();
+  HPKC1: ^HulppostkastC();
+  Rookdetectie: ^Rookdetectie();
+  SOS: Sensor(true, true, false);
+
+  plant KnoppenVBafsluiter:
+    uncontrollable u_primairVRIrood, u_primairVRIuit, u_primairVBdicht, u_primairVBopen, u_VRIrood, u_VRIknipper, u_VRIuit, u_ABstop, u_ABopen, u_ABsluit, u_ABsluitOnv;
+    controllable c_primairVRIrood_klaar, c_primairVRIuit_klaar, c_primairVBdicht_klaar, c_primairVBopen_klaar, c_VRIrood_klaar, c_VRIknipper_klaar, c_VRIuit_klaar, c_ABstop_klaar, c_ABopen_klaar, c_ABsluit_klaar, c_ABsluitOnv_klaar;
+    monitor u_primairVRIrood, u_primairVRIuit, u_primairVBdicht, u_primairVBopen, u_VRIrood, u_VRIknipper, u_VRIuit, u_ABstop, u_ABopen, u_ABsluit, u_ABsluitOnv;
+    location los:
+      initial; marked;
+      edge u_primairVRIrood when BedieningVRI.auto and (not ToegangVRI.rood or not PrimairVRI.rood) goto primairVRIrood;
+      edge u_primairVRIuit when BedieningVRI.auto and (not ToegangVRI.uit or not PrimairVRI.uit) goto primairVRIuit;
+      edge u_primairVBdicht when BedieningVRI.auto and BedieningAB.auto and (not PrimairVRI.rood or not PrimairAB.dicht) goto primairVBdicht;
+      edge u_primairVBopen when BedieningVRI.auto and BedieningAB.auto and (not PrimairVRI.uit or not PrimairAB.open) goto primairVBopen;
+      edge u_VRIrood when BedieningVRI.hand goto VRIrood;
+      edge u_VRIknipper when BedieningVRI.hand goto VRIknipper;
+      edge u_VRIuit when BedieningVRI.hand goto VRIuit;
+      edge u_ABstop when BedieningAB.hand goto ABstop;
+      edge u_ABopen when BedieningAB.hand goto ABopen;
+      edge u_ABsluit when BedieningAB.hand goto ABsluit;
+      edge u_ABsluitOnv when BedieningAB.hand goto ABsluitOnv;
+    location primairVRIrood:
+      edge c_primairVRIrood_klaar when PrimairVRI.rood goto los;
+    location primairVRIuit:
+      edge c_primairVRIuit_klaar when PrimairVRI.uit goto los;
+    location primairVBdicht:
+      edge c_primairVBdicht_klaar when PrimairVRI.rood and PrimairAB.dicht goto los;
+    location primairVBopen:
+      edge c_primairVBopen_klaar when PrimairVRI.uit and PrimairAB.open goto los;
+    location VRIrood:
+      edge c_VRIrood_klaar when ToegangVRI.rood goto los;
+    location VRIknipper:
+      edge c_VRIknipper_klaar when ToegangVRI.knipper goto los;
+    location VRIuit:
+      edge c_VRIuit_klaar when ToegangVRI.uit goto los;
+    location ABstop:
+      edge c_ABstop_klaar when ToegangAB.stop goto los;
+    location ABopen:
+      edge c_ABopen_klaar when ToegangAB.op goto los;
+    location ABsluit:
+      edge c_ABsluit_klaar when ToegangAB.neer goto los;
+    location ABsluitOnv:
+      edge c_ABsluitOnv_klaar when ToegangAB.neeronvoorwaardelijk goto los;
+  end
+
+  PrimairVRI: ^PrimairVRI();
+  PrimairAB: ^PrimairAB();
+
+  HoogteDetectieToerit: HoogteDetectie();
+
+  J32: ^J32();
+
+  VRI: Verkeerslicht();
+  ToegangVRI: ^ToegangVerkeerslicht();
+  BedieningVRI: ^Bediening();
+  plant KnoppenBedieningVRI:
+    uncontrollable u_auto, u_hand;
+    controllable c_auto_klaar, c_hand_klaar;
+    monitor u_auto, u_hand;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+    location auto:
+      edge c_auto_klaar when BedieningVRI.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningVRI.hand goto los;
+  end
+
+  AB: Afsluitboom();
+  ToegangAB: ^ToegangAfsluitboom();
+  BedieningAB: Bediening();
+  plant KnoppenBedieningAB:
+    uncontrollable u_auto, u_hand;
+    controllable c_auto_klaar, c_hand_klaar;
+    monitor u_auto, u_hand;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+    location auto:
+      edge c_auto_klaar when BedieningAB.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningAB.hand goto los;
+  end
+
+  Ventilatie: ^Ventilatie(SetAuto.setauto);
+
+  Lichtsensor: ^Lichtsensor();
+  Verlichting: ^Verlichting(SetAuto.setauto);
+
+  CCTV: ^CCTV();
+  Beeldregistratie: Actuator(true,false);
+  plant KnoppenCCTV:
+    uncontrollable u_schouwen, u_shouwenTegen, u_schouwenHuidig, u_schouwenHuidigTegen, u_schouwenStop, u_rechts, u_links;
+    controllable c_schouwen_klaar, c_shouwenTegen_klaar, c_schouwenHuidig_klaar, c_schouwenHuidigTegen_klaar, c_schouwenStop_klaar, c_rechts_klaar, c_links_klaar;
+    monitor u_schouwen, u_shouwenTegen, u_schouwenHuidig, u_schouwenHuidigTegen, u_schouwenStop, u_rechts, u_links;
+    location los:
+      initial; marked;
+      edge u_schouwen goto schouwen;
+      edge u_shouwenTegen goto schouwenTegen;
+      edge u_schouwenHuidig goto schouwenHuidig;
+      edge u_schouwenHuidigTegen goto schouwenHuidigTegen;
+      edge u_schouwenStop goto schouwenStop;
+      edge u_rechts goto rechts;
+      edge u_links goto links;
+    location schouwen:
+      edge c_schouwen_klaar when CCTV.Schouwen.schouwen and CCTV.Richting.mee goto los;
+    location schouwenTegen:
+      edge c_shouwenTegen_klaar when CCTV.Schouwen.schouwen and CCTV.Richting.tegen goto los;
+    location schouwenHuidig:
+      edge c_schouwenHuidig_klaar when CCTV.Schouwen.schouwenHuidig and CCTV.Richting.mee goto los;
+    location schouwenHuidigTegen:
+      edge c_schouwenHuidigTegen_klaar when CCTV.Schouwen.schouwenHuidig and CCTV.Richting.tegen goto los;
+    location schouwenStop:
+      edge c_schouwenStop_klaar when CCTV.Schouwen.uit goto los;
+    location rechts:
+      edge c_rechts_klaar when CCTV.Selectie.rechts and CCTV.Schouwen.uit goto los;
+    location links:
+      edge c_links_klaar when CCTV.Selectie.links and CCTV.Schouwen.uit goto los;
+  end
+
+  Omroep: ^Omroep();
+
+  Vluchtdeur: ^Vluchtdeur(SetAuto.setauto);
+
+  // SetAuto
+  requirement SetAuto.c_klaar needs Ventilatie.Bediening.auto and BedieningAB.auto and BedieningVRI.auto and Verlichting.Bediening.auto
+                                and Vluchtdeur.BedieningGeluidsbaken.auto and Vluchtdeur.BedieningContourVerlichting.auto;
+
+  // PrimairVRI
+  requirement PrimairVRI.c_roodauto needs SetAuto.setauto;
+  requirement PrimairVRI.c_uitauto needs SetAuto.setauto;
+  requirement PrimairVRI.c_rood needs (KnoppenVBafsluiter.primairVRIrood or KnoppenVBafsluiter.primairVBdicht) and not SetAuto.setauto;
+  requirement PrimairVRI.c_uit needs (KnoppenVBafsluiter.primairVRIuit or KnoppenVBafsluiter.primairVBopen) and not SetAuto.setauto;
+
+  // PrimairVB
+  requirement PrimairAB.c_auto needs SetAuto.setauto;
+  requirement PrimairAB.c_dicht needs KnoppenVBafsluiter.primairVBdicht and not SetAuto.setauto;
+  requirement PrimairAB.c_open needs KnoppenVBafsluiter.primairVBopen and not SetAuto.setauto;
+
+  // J32
+  requirement J32.Stand.c_aan needs not VRI.Stand.uit or VRI.TimerVrijgaveAan.lopend;
+  requirement J32.Stand.c_uit needs VRI.Stand.uit and VRI.TimerVrijgaveAan.uit;
+
+  // Verkeerslichten
+  requirement BedieningVRI.c_hand needs KnoppenBedieningVRI.hand and not SetAuto.setauto;
+  requirement BedieningVRI.c_auto needs KnoppenBedieningVRI.auto or SetAuto.setauto;
+  requirement {ToegangVRI.c_uitrood, ToegangVRI.c_knipperrood} needs (BedieningVRI.auto and PrimairVRI.rood)
+                                                                  or (BedieningVRI.hand and KnoppenVBafsluiter.VRIrood)
+                                                                  or (BedieningVRI.auto and (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairVRI.uit);
+  requirement {ToegangVRI.c_knipperuit, ToegangVRI.c_rooduit} needs (BedieningVRI.auto and PrimairVRI.uit)
+                                                                 or (BedieningVRI.hand and KnoppenVBafsluiter.VRIuit)
+                                                                 or (BedieningVRI.auto and not PrimairVRI.rood and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend));
+  requirement {ToegangVRI.c_uitknipper, ToegangVRI.c_roodknipper} needs (BedieningVRI.hand and KnoppenVBafsluiter.VRIknipper);
+  requirement VRI.TimerVrijgaveAan.c_aan needs not ToegangVRI.uit;
+  requirement VRI.Stand.c_uitknipper needs not ToegangVRI.uit and VRI.TimerVrijgaveAan.afgelopen;
+  requirement VRI.Stand.c_geel needs VRI.TimerVrijgaveGeel.afgelopen and ToegangVRI.rood;
+  requirement VRI.Stand.c_rood needs ToegangVRI.rood;
+  requirement VRI.Stand.c_uit needs ToegangVRI.uit;
+  requirement VRI.Stand.c_geelknipper needs ToegangVRI.knipper;
+  requirement VRI.Stand.c_roodknipper needs not ToegangVRI.rood;
+
+  // Afsluitbomen
+  requirement BedieningAB.c_hand needs KnoppenBedieningAB.hand and not SetAuto.setauto;
+  requirement BedieningAB.c_auto needs KnoppenBedieningAB.auto or SetAuto.setauto;
+  requirement {ToegangAB.c_neerop, ToegangAB.c_stopop, ToegangAB.c_neeronvoorwaardelijkop} needs (BedieningAB.auto and PrimairAB.open)
+                                                                                              or (BedieningAB.hand and KnoppenVBafsluiter.ABopen)
+                                                                                              or (BedieningAB.auto and not (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairAB.dicht);
+  requirement {ToegangAB.c_opneer, ToegangAB.c_stopneer, ToegangAB.c_neeronvoorwaardelijkneer} needs (BedieningAB.auto and PrimairAB.dicht)
+                                                                                                  or (BedieningAB.hand and KnoppenVBafsluiter.ABsluit)
+                                                                                                  or (BedieningAB.auto and (Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend) and not PrimairAB.open);
+  requirement {ToegangAB.c_opstop, ToegangAB.c_neerstop, ToegangAB.c_neeronvoorwaardelijkstop} needs (BedieningAB.hand and KnoppenVBafsluiter.ABstop);
+  requirement {ToegangAB.c_opneeronvoorwaardelijk, ToegangAB.c_neerneeronvoorwaardelijk, ToegangAB.c_stopneeronvoorwaardelijk} needs (BedieningAB.hand and KnoppenVBafsluiter.ABsluitOnv);
+  requirement {AB.Commando.c_neerop, AB.Commando.c_stopop, AB.Commando.c_neeronvoorwaardelijkop} needs ToegangAB.op;
+  requirement {AB.Commando.c_opneer, AB.Commando.c_stopneer, AB.Commando.c_neeronvoorwaardelijkneer} needs ToegangAB.neer and VRI.Stand.rood and not AB.ObstakelDetectie.aan and VRI.TimerVrijgavesignaal.afgelopen;
+  requirement {AB.Commando.c_opstop, AB.Commando.c_neerstop, AB.Commando.c_neeronvoorwaardelijkstop} needs ToegangAB.stop;
+  requirement {AB.Commando.c_opneeronvoorwaardelijk, AB.Commando.c_neerneeronvoorwaardelijk, AB.Commando.c_stopneeronvoorwaardelijk} needs ToegangAB.neeronvoorwaardelijk;
+
+  // Ventilatie
+  requirement Ventilatie.Richting.c_rijrichting needs (Ventilatie.Bediening.hand and Ventilatie.Knoppen.rijrichting) or (Ventilatie.Bediening.auto and not Stand.ondersteunend);
+  requirement Ventilatie.Richting.c_tegenRijrichting needs (Ventilatie.Bediening.hand and Ventilatie.Knoppen.tegenRijrichting) or (Ventilatie.Bediening.auto and Stand.ondersteunend);
+  requirement Ventilatie.Stand.c_0 needs (Ventilatie.Bediening.auto and (Stand.operationeel and Rookdetectie.stand0)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s0);
+  requirement Ventilatie.Stand.c_1 needs (Ventilatie.Bediening.auto and (Stand.operationeel and Rookdetectie.stand1)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s1);
+  requirement Ventilatie.Stand.c_2 needs (Ventilatie.Bediening.auto and ((Stand.operationeel and Rookdetectie.stand2) or ((Stand.onderhoud or Stand.herstel) and (Rookdetectie.stand0 or Rookdetectie.stand1 or Rookdetectie.stand2)))) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s2);
+  requirement Ventilatie.Stand.c_3 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel) and Rookdetectie.stand3)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s3);
+  requirement Ventilatie.Stand.c_4 needs (Ventilatie.Bediening.auto and (((Stand.operationeel or Stand.onderhoud or Stand.herstel) and Rookdetectie.stand4) or ((Stand.standby or Stand.ondersteunend) and (Rookdetectie.stand0 or Rookdetectie.stand1 or Rookdetectie.stand2 or Rookdetectie.stand3 or Rookdetectie.stand4)))) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s4);
+  requirement Ventilatie.Stand.c_5 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand5)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s5);
+  requirement Ventilatie.Stand.c_6 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand6)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s6);
+  requirement Ventilatie.Stand.c_7 needs (Ventilatie.Bediening.auto and ((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand7)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s7);
+  requirement Ventilatie.Stand.c_8 needs (Ventilatie.Bediening.auto and (((Stand.operationeel or Stand.onderhoud or Stand.herstel or Stand.standby or Stand.ondersteunend) and Rookdetectie.stand8) or Stand.calamiteit or Stand.evacuatie)) or (Ventilatie.Bediening.hand and Ventilatie.Knoppen.s8);
+
+  // Verlichting
+  requirement Verlichting.Stand.c_0 needs (Lichtsensor.stand0 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s0 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_1 needs (Lichtsensor.stand1 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s1 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_2 needs (Lichtsensor.stand2 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s2 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_3 needs (Lichtsensor.stand3 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s3 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_4 needs (Lichtsensor.stand4 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s4 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_5 needs (Lichtsensor.stand5 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s5 and Verlichting.Bediening.hand) or ((Stand.onderhoud or Stand.herstel) and Verlichting.Bediening.auto);
+  requirement Verlichting.Stand.c_6 needs (Lichtsensor.stand6 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s6 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_7 needs (Lichtsensor.stand7 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s7 and Verlichting.Bediening.hand);
+  requirement Verlichting.Stand.c_8 needs (Lichtsensor.stand8 and Verlichting.Bediening.auto and Stand.operationeel) or (Verlichting.Knoppen.s8 and Verlichting.Bediening.hand) or ((Stand.standby or Stand.calamiteit or Stand.ondersteunend or Stand.evacuatie) and Verlichting.Bediening.auto);
+
+  // CCTV
+  requirement Beeldregistratie.c_aan needs Stand.standby or Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend;
+  requirement Beeldregistratie.c_uit needs not (Stand.standby or Stand.calamiteit or Stand.evacuatie or Stand.ondersteunend);
+  requirement CCTV.Schouwen.c_schouwen needs KnoppenCCTV.schouwen or KnoppenCCTV.schouwenTegen;
+  requirement CCTV.Schouwen.c_schouwenHuidig needs KnoppenCCTV.schouwenHuidig or KnoppenCCTV.schouwenHuidigTegen;
+  requirement CCTV.Schouwen.c_stop needs KnoppenCCTV.schouwenStop or KnoppenCCTV.rechts or KnoppenCCTV.links;
+  requirement CCTV.Richting.c_mee needs KnoppenCCTV.schouwen or KnoppenCCTV.schouwenHuidig;
+  requirement CCTV.Richting.c_tegen needs KnoppenCCTV.schouwenTegen or KnoppenCCTV.schouwenHuidigTegen;
+  requirement CCTV.Selectie.c_rechts needs KnoppenCCTV.rechts;
+  requirement CCTV.Selectie.c_links needs KnoppenCCTV.links;
+  requirement CCTV.Selectie.c_klaar needs not KnoppenCCTV.rechts and not KnoppenCCTV.links;
+
+  // Omroep
+  requirement Omroep.Modus.c_startlive needs Omroep.Knoppen.startLive;
+  requirement Omroep.Modus.c_stoplive needs Omroep.Knoppen.stopLive;
+  requirement Omroep.Modus.c_startboodschap needs Omroep.Knoppen.startBoodschap or (Stand.evacuatie and Omroep.Knoppen.los);
+  requirement Omroep.Modus.c_stopboodschap needs Omroep.Knoppen.stopBoodschap;
+
+  requirement Omroep.Gebied.c_buis needs Omroep.Knoppen.buis or (Stand.evacuatie and Omroep.Knoppen.los);
+  requirement Omroep.Gebied.c_sectie needs Omroep.Knoppen.sectie;
+
+  // Vluchtdeur
+  requirement Vluchtdeur.Geluidsbaken.c_aan needs (Vluchtdeur.BedieningGeluidsbaken.hand and Vluchtdeur.KnoppenGeluidsbaken.aan)
+                                               or (Vluchtdeur.BedieningGeluidsbaken.auto and Stand.evacuatie);
+  requirement Vluchtdeur.Geluidsbaken.c_uit needs (Vluchtdeur.BedieningGeluidsbaken.hand and Vluchtdeur.KnoppenGeluidsbaken.uit)
+                                               or (Vluchtdeur.BedieningGeluidsbaken.auto and not Stand.evacuatie);
+  requirement Vluchtdeur.ContourVerlichting.c_aan needs (Vluchtdeur.BedieningContourVerlichting.hand and Vluchtdeur.KnoppenContourVerlichting.aan)
+                                                     or (Vluchtdeur.BedieningContourVerlichting.auto and Stand.evacuatie);
+  requirement Vluchtdeur.ContourVerlichting.c_uit needs (Vluchtdeur.BedieningContourVerlichting.hand and Vluchtdeur.KnoppenContourVerlichting.uit)
+                                                     or (Vluchtdeur.BedieningContourVerlichting.auto and not Stand.evacuatie);
+
+end

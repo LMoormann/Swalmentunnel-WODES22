@@ -1,0 +1,65 @@
+import "Sensor.cif", "Timer.cif", "Bediening.cif";
+
+group def Verkeerslicht():
+  plant Stand:
+    controllable c_uit, c_geel, c_uitknipper, c_geelknipper, c_roodknipper, c_rood;
+    location uit:
+      initial; marked;
+      edge c_uitknipper goto knipper;
+    location knipper:
+      edge c_uit goto uit;
+      edge c_geel goto geel;
+    location geel:
+      edge c_geelknipper goto knipper;
+      edge c_rood goto rood;
+    location rood:
+      edge c_roodknipper goto knipper;
+  end
+
+  TimerVrijgaveAan: TimerSimpel();
+  TimerVrijgaveGeel: TimerSimpel();
+  TimerVrijgaveRood: TimerSimpel();
+  TimerVrijgaveUit: TimerSimpel();
+
+  requirement TimerVrijgaveAan.c_aan needs Stand.uit;
+  requirement TimerVrijgaveAan.c_resetAfgelopen needs not Stand.uit;
+
+  requirement TimerVrijgaveGeel.c_aan needs Stand.knipper;
+  requirement TimerVrijgaveGeel.c_resetAfgelopen needs not Stand.knipper;
+
+  requirement TimerVrijgaveRood.c_aan needs Stand.geel;
+  requirement TimerVrijgaveRood.c_resetAfgelopen needs not Stand.geel;
+  requirement Stand.c_rood needs TimerVrijgaveRood.afgelopen;
+
+  requirement TimerVrijgaveUit.c_aan needs Stand.knipper;
+  requirement TimerVrijgaveUit.c_resetAfgelopen needs not Stand.knipper;
+  requirement Stand.c_uit needs TimerVrijgaveUit.afgelopen;
+
+  Vrijgavesignaal: Sensor(true,true,false);
+  TimerVrijgavesignaal: Timer();
+
+  plant Relatie:
+    location:
+      initial; marked;
+      edge Vrijgavesignaal.u_aan when Stand.rood and TimerVrijgavesignaal.afgelopen;
+      edge Vrijgavesignaal.u_uit when not Stand.rood;
+  end
+
+  requirement TimerVrijgavesignaal.c_aan needs Stand.rood;
+  requirement TimerVrijgavesignaal.c_resetLopend needs not Stand.rood;
+  requirement TimerVrijgavesignaal.c_resetAfgelopen needs not Stand.rood;
+end
+
+plant def ToegangVerkeerslicht():
+  controllable c_uitrood, c_uitknipper, c_knipperrood, c_knipperuit, c_rooduit, c_roodknipper;
+  location uit:
+    initial; marked;
+    edge c_uitrood goto rood;
+    edge c_uitknipper goto knipper;
+  location knipper:
+    edge c_knipperrood goto rood;
+    edge c_knipperuit goto uit;
+  location rood:
+    edge c_rooduit goto uit;
+    edge c_roodknipper goto knipper;
+end

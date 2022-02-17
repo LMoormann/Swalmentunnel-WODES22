@@ -1,0 +1,124 @@
+import "Sensor.cif", "Actuator.cif", "Bediening.cif";
+
+group def KelderSchoon_def(alg bool setauto, calamiteit):
+    plant Sensors:
+      uncontrollable u_S1aan, u_S1uit, u_S2aan, u_S2uit, u_S3aan, u_S3uit, u_S4aan, u_S4uit, u_S5aan, u_S5uit;
+      location Leeg:
+        initial; marked;
+        edge u_S1aan goto Laagwater;
+      location Laagwater:
+        edge u_S1uit when Pomp.aan goto Leeg;
+        edge u_S2aan goto Startwater;
+      location Startwater:
+        edge u_S2uit when Pomp.aan goto Laagwater;
+        edge u_S3aan goto Maxstartwater;
+      location Maxstartwater:
+        edge u_S3uit when Pomp.aan goto Startwater;
+        edge u_S4aan goto Laaghoogwater;
+      location Laaghoogwater:
+        edge u_S4uit when Pomp.aan goto Maxstartwater;
+        edge u_S5aan goto Hooghoogwater;
+      location Hooghoogwater:
+        edge u_S5uit when Pomp.aan goto Laaghoogwater;
+    end
+    Pomp: Actuator(true,false);
+
+    plant Regime:
+      controllable c_bergen, c_leeghouden, c_uit;
+      location leeghouden:
+        initial; marked;
+        edge c_bergen     goto bergen;
+        edge c_uit        goto uit;
+      location bergen:
+        edge c_leeghouden goto leeghouden;
+        edge c_uit        goto uit;
+      location uit:
+        edge c_bergen     goto bergen;
+        edge c_leeghouden goto leeghouden;
+    end
+
+    Bediening: ^Bediening();
+
+    plant Knoppen:
+      uncontrollable u_auto, u_hand, u_leeghouden, u_bergen, u_uit;
+      controllable c_auto_klaar, c_hand_klaar, c_leeghouden_klaar, c_bergen_klaar, c_uit_klaar;
+      monitor u_auto, u_hand, u_leeghouden, u_bergen, u_uit;
+      location los:
+        initial; marked;
+        edge u_auto goto auto;
+        edge u_hand goto hand;
+        edge u_leeghouden goto leeghouden;
+        edge u_bergen goto bergen;
+        edge u_uit goto uit;
+      location auto:
+        edge c_auto_klaar when Bediening.auto goto los;
+      location hand:
+        edge c_hand_klaar when Bediening.hand goto los;
+      location leeghouden:
+        edge c_leeghouden_klaar when Regime.leeghouden goto los;
+      location bergen:
+        edge c_bergen_klaar when Regime.bergen goto los;
+      location uit:
+        edge c_uit_klaar when Regime.uit goto los;
+    end
+
+    requirement Bediening.c_hand needs Knoppen.hand and not setauto;
+    requirement Bediening.c_auto needs Knoppen.auto or setauto;
+
+    requirement Regime.uit disables Pomp.c_aan;
+    requirement Pomp.c_aan needs (Regime.bergen and Sensors.Hooghoogwater) or (Regime.leeghouden and Sensors.Startwater);
+    requirement Pomp.c_uit needs (Regime.bergen and Sensors.Laaghoogwater) or (Regime.leeghouden and Sensors.Laagwater) or (Regime.uit);
+
+    requirement Regime.c_bergen needs (Bediening.auto and calamiteit) or (Bediening.hand and Knoppen.bergen);
+    requirement Regime.c_leeghouden needs Bediening.hand and Knoppen.leeghouden;
+    requirement Regime.c_uit needs Bediening.hand and Knoppen.uit;
+
+end
+
+
+group def KelderVuil_def(alg bool setauto, calamiteit):
+    SensorLaagwater: Sensor(true,true,false);
+    Pomp: Actuator(true,false);
+
+    plant Regime:
+      controllable c_lozen, c_uit;
+      location lozen:
+        initial; marked;
+        edge c_uit goto uit;
+      location uit:
+        edge c_lozen goto lozen;
+    end
+
+    Bediening: ^Bediening();
+
+    plant Knoppen:
+      uncontrollable u_auto, u_hand, u_lozen, u_uit;
+      controllable c_auto_klaar, c_hand_klaar, c_lozen_klaar, c_uit_klaar;
+      monitor u_auto, u_hand, u_lozen, u_uit;
+      location los:
+        initial; marked;
+        edge u_auto goto auto;
+        edge u_hand goto hand;
+        edge u_lozen goto lozen;
+        edge u_uit goto uit;
+      location auto:
+        edge c_auto_klaar when Bediening.auto goto los;
+      location hand:
+        edge c_hand_klaar when Bediening.hand goto los;
+      location lozen:
+        edge c_lozen_klaar when Regime.lozen goto los;
+      location uit:
+        edge c_uit_klaar when Regime.uit goto los;
+    end
+
+    requirement Bediening.c_hand needs Knoppen.hand and not setauto;
+    requirement Bediening.c_auto needs Knoppen.auto or setauto;
+
+    requirement SensorLaagwater.uit disables Pomp.c_aan;
+    requirement Pomp.c_uit needs Regime.uit or SensorLaagwater.uit;
+    requirement Pomp.c_aan needs Regime.lozen and SensorLaagwater.aan;
+
+    requirement Regime.c_uit needs (Bediening.auto and calamiteit) or (Bediening.hand and Knoppen.uit);
+    requirement Regime.c_lozen needs Bediening.hand and Knoppen.lozen;
+
+end

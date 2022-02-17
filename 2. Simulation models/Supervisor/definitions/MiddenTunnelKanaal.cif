@@ -1,0 +1,96 @@
+// import "Kopdeur.cif", "Actuator.cif", "Drukknop.cif", "Bediening.cif", "OmroepMTK.cif","Overdruk.cif", "DynamischeVluchtrouteIndicatie.cif";
+import "Actuator.cif", "Bediening.cif", "Overdruk.cif", "DVI.cif", "OmroepMTK.cif";
+
+group def MiddenTunnelKanaal(alg bool vluchtgereed, evacuatie, evacuatie_aflopend, evacuatie_oplopend, setauto):
+
+  Verlichting: Actuator(true, false);
+  BedieningVerlichting: Bediening();
+  plant KnoppenVerlichting:
+    uncontrollable u_auto, u_hand, u_aan, u_uit;
+    controllable c_auto_klaar, c_hand_klaar, c_aan_klaar, c_uit_klaar;
+    monitor u_auto, u_hand, u_aan, u_uit;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+      edge u_aan goto aan;
+      edge u_uit goto uit;
+    location auto:
+      edge c_auto_klaar when BedieningVerlichting.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningVerlichting.hand goto los;
+    location aan:
+      edge c_aan_klaar when Verlichting.aan goto los;
+    location uit:
+      edge c_uit_klaar when Verlichting.uit goto los;
+  end
+
+  requirement BedieningVerlichting.c_hand needs KnoppenVerlichting.hand and not setauto;
+  requirement BedieningVerlichting.c_auto needs KnoppenVerlichting.auto or setauto;
+  requirement Verlichting.c_aan needs (BedieningVerlichting.hand and KnoppenVerlichting.aan) or (BedieningVerlichting.auto and (vluchtgereed or evacuatie));
+  requirement Verlichting.c_uit needs (BedieningVerlichting.hand and KnoppenVerlichting.uit) or (BedieningVerlichting.auto and not (vluchtgereed or evacuatie));
+
+  Overdruk: ^Overdruk();
+  BedieningOverdruk: Bediening();
+  plant KnoppenOverdruk:
+    uncontrollable u_auto, u_hand, u_links, u_rechts, u_uit;
+    controllable c_auto_klaar, c_hand_klaar, c_links_klaar, c_rechts_klaar, c_uit_klaar;
+    monitor u_auto, u_hand, u_links, u_rechts, u_uit;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+      edge u_links goto links;
+      edge u_rechts goto rechts;
+      edge u_uit goto uit;
+    location auto:
+      edge c_auto_klaar when BedieningOverdruk.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningOverdruk.hand goto los;
+    location links:
+      edge c_links_klaar when Overdruk.links goto los;
+    location rechts:
+      edge c_rechts_klaar when Overdruk.rechts goto los;
+    location uit:
+      edge c_uit_klaar when Overdruk.uit goto los;
+  end
+
+  requirement BedieningOverdruk.c_hand needs KnoppenOverdruk.hand and not setauto;
+  requirement BedieningOverdruk.c_auto needs KnoppenOverdruk.auto or setauto;
+  requirement Overdruk.c_uit needs (BedieningOverdruk.hand and KnoppenOverdruk.uit) or (BedieningOverdruk.auto and not (vluchtgereed or evacuatie));
+  requirement Overdruk.c_links needs (BedieningOverdruk.hand and KnoppenOverdruk.links) or (BedieningOverdruk.auto and evacuatie_aflopend);
+  requirement Overdruk.c_rechts needs (BedieningOverdruk.hand and KnoppenOverdruk.rechts) or (BedieningOverdruk.auto and evacuatie_oplopend);
+
+  DVI: ^DVI();
+  BedieningDVI: Bediening();
+  plant KnoppenDVI:
+    uncontrollable u_auto, u_hand, u_oplopend, u_aflopend, u_uit;
+    controllable c_auto_klaar, c_hand_klaar, c_oplopend_klaar, c_aflopend_klaar, c_uit_klaar;
+    monitor u_auto, u_hand, u_oplopend, u_aflopend, u_uit;
+    location los:
+      initial; marked;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+      edge u_oplopend goto oplopend;
+      edge u_aflopend goto aflopend;
+      edge u_uit goto uit;
+    location auto:
+      edge c_auto_klaar when BedieningOverdruk.auto goto los;
+    location hand:
+      edge c_hand_klaar when BedieningOverdruk.hand goto los;
+    location oplopend:
+      edge c_oplopend_klaar when DVI.oplopend goto los;
+    location aflopend:
+      edge c_aflopend_klaar when DVI.aflopend goto los;
+    location uit:
+      edge c_uit_klaar when Overdruk.uit goto los;
+  end
+  requirement BedieningDVI.c_hand needs KnoppenDVI.hand and not setauto;
+  requirement BedieningDVI.c_auto needs KnoppenDVI.auto or setauto;
+  requirement DVI.c_uit needs (BedieningDVI.hand and KnoppenDVI.uit) or (BedieningDVI.auto and not (vluchtgereed or evacuatie));
+  requirement DVI.c_aflopend needs (BedieningDVI.hand and KnoppenDVI.aflopend) or (BedieningDVI.auto and evacuatie_oplopend);
+  requirement DVI.c_oplopend needs (BedieningDVI.hand and KnoppenDVI.oplopend) or (BedieningDVI.auto and evacuatie_aflopend);
+
+  Omroep: OmroepMTK();
+
+end

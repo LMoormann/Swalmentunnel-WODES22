@@ -1,0 +1,93 @@
+plant def Lichtsensor():
+  uncontrollable u_0, u_1, u_2, u_3, u_4, u_5, u_6, u_7, u_8;
+  location stand0:
+    initial; marked;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand1:
+    marked;
+    edge u_0 goto stand0;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand2:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand3:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand4:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand5:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand6:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_7 goto stand7;
+    edge u_8 goto stand8;
+  location stand7:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_8 goto stand8;
+  location stand8:
+    marked;
+    edge u_0 goto stand0;
+    edge u_1 goto stand1;
+    edge u_2 goto stand2;
+    edge u_3 goto stand3;
+    edge u_4 goto stand4;
+    edge u_5 goto stand5;
+    edge u_6 goto stand6;
+    edge u_7 goto stand7;
+end

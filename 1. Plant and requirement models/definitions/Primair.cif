@@ -1,0 +1,27 @@
+plant def PrimairAB():
+  controllable c_auto, c_open, c_dicht;
+  location auto:
+    initial; marked;
+    edge c_open goto open;
+    edge c_dicht goto dicht;
+  location open:
+    edge c_dicht goto dicht;
+    edge c_auto goto auto;
+  location dicht:
+    edge c_open goto open;
+    edge c_auto goto auto;
+end
+
+plant def PrimairVRI():
+  controllable c_uitauto, c_roodauto, c_uit, c_rood;
+  location auto:
+    initial; marked;
+    edge c_uit goto uit;
+    edge c_rood goto rood;
+  location uit:
+    edge c_uitauto goto auto;
+    edge c_rood goto rood;
+  location rood:
+    edge c_roodauto goto auto;
+    edge c_uit goto uit;
+end

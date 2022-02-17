@@ -1,0 +1,29 @@
+  //Hardware mapping van actuator:
+  //Actuatoren states in het model worden gezien als output Booleans.
+  //De actuator in het model, is zo gekoppeld met de PLC dat wanneer de actuator van state verandert deze er voor zorgt dat de PLC ook
+  //een output signaal genereert
+  //Dit is gerealiseerd d.m.v. in de IO lijst "Actuator.aan, bool, Q, bitadress". (Snelle manier)
+  //Alternatief zou je ook Booleans in het actuator model kunnen definieren en dan wanneer de actuator van staat verandert gebruik maken van "do Q := True "
+
+plant def Actuator(alg bool uitGemarkeerd; alg bool aanGemarkeerd):
+  controllable c_aan, c_uit;
+  location uit:
+    initial;
+    marked uitGemarkeerd;
+    edge c_aan goto aan;
+  location aan:
+    marked aanGemarkeerd;
+    edge c_uit goto uit;
+end
+
+plant def ActuatorNoodstop(alg bool uitGemarkeerd; alg bool aanGemarkeerd):
+  controllable c_aan, c_uit, c_uitNood;
+  location uit:
+    initial;
+    marked uitGemarkeerd;
+    edge c_aan goto aan;
+  location aan:
+    marked aanGemarkeerd;
+    edge c_uit goto uit;
+    edge c_uitNood goto uit;
+end

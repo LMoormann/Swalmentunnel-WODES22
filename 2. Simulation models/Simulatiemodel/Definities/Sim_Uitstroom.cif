@@ -1,0 +1,6 @@
+group def Sim_Uitstroom(alg bool pomp_aan, brandslang1, brandslang2):
+
+  alg int volume_uitstroom = if pomp_aan and brandslang1 and brandslang2: 20
+                           elif pomp_aan and (brandslang1 or  brandslang2): 10
+                           else 0 end;
+end

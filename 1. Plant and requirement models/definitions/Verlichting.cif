@@ -1,0 +1,145 @@
+import "Bediening.cif";
+
+group def Verlichting(alg bool setauto):
+
+  Bediening: ^Bediening();
+
+  plant Knoppen:
+    uncontrollable u_0, u_1, u_2, u_3, u_4, u_5, u_6, u_7, u_8, u_auto, u_hand;
+    controllable c_0_klaar, c_1_klaar, c_2_klaar, c_3_klaar, c_4_klaar, c_5_klaar, c_6_klaar, c_7_klaar, c_8_klaar, c_auto_klaar, c_hand_klaar;
+    monitor u_0, u_1, u_2, u_3, u_4, u_5, u_6, u_7, u_8, u_auto, u_hand;
+    location los:
+      initial; marked;
+      edge u_0 when Bediening.hand goto s0;
+      edge u_1 when Bediening.hand goto s1;
+      edge u_2 when Bediening.hand goto s2;
+      edge u_3 when Bediening.hand goto s3;
+      edge u_4 when Bediening.hand goto s4;
+      edge u_5 when Bediening.hand goto s5;
+      edge u_6 when Bediening.hand goto s6;
+      edge u_7 when Bediening.hand goto s7;
+      edge u_8 when Bediening.hand goto s8;
+      edge u_auto goto auto;
+      edge u_hand goto hand;
+    location s0:
+      edge c_0_klaar when Stand.s0 or Bediening.auto goto los;
+    location s1:
+      edge c_1_klaar when Stand.s1 or Bediening.auto goto los;
+    location s2:
+      edge c_2_klaar when Stand.s2 or Bediening.auto goto los;
+    location s3:
+      edge c_3_klaar when Stand.s3 or Bediening.auto goto los;
+    location s4:
+      edge c_4_klaar when Stand.s4 or Bediening.auto goto los;
+    location s5:
+      edge c_5_klaar when Stand.s5 or Bediening.auto goto los;
+    location s6:
+      edge c_6_klaar when Stand.s6 or Bediening.auto goto los;
+    location s7:
+      edge c_7_klaar when Stand.s7 or Bediening.auto goto los;
+    location s8:
+      edge c_8_klaar when Stand.s8 or Bediening.auto goto los;
+    location auto:
+      edge c_auto_klaar when Bediening.auto goto los;
+    location hand:
+      edge c_hand_klaar when Bediening.hand goto los;
+  end
+
+  plant Stand:
+    controllable c_0, c_1, c_2, c_3, c_4, c_5, c_6, c_7, c_8;
+    location s0:
+      initial; marked;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s1:
+      marked;
+      edge c_0 goto s0;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s2:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s3:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s4:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s5:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s6:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_7 goto s7;
+      edge c_8 goto s8;
+    location s7:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_8 goto s8;
+    location s8:
+      marked;
+      edge c_0 goto s0;
+      edge c_1 goto s1;
+      edge c_2 goto s2;
+      edge c_3 goto s3;
+      edge c_4 goto s4;
+      edge c_5 goto s5;
+      edge c_6 goto s6;
+      edge c_7 goto s7;
+  end
+
+  requirement Bediening.c_hand needs Knoppen.hand and not setauto;
+  requirement Bediening.c_auto needs Knoppen.auto or setauto;
+end
+

@@ -1,0 +1,639 @@
+import "../GUI/GUI.cif";
+
+import "Definities/Sim_Slagboom.cif", "Definities/Sim_Verkeerslicht.cif",
+  "Definities/Sim_J32.cif", "Definities/Sim_Matrixbord.cif",
+  "Definities/Sim_Timer.cif", "Definities/Sim_HoogteDetectie.cif",
+  "Definities/Sim_Hulppostkast.cif", "Definities/Sim_Rookdetectie.cif",
+  "Definities/Sim_Ventilatie.cif", "Definities/Sim_SOS.cif",
+  "Definities/Sim_Licht.cif", "Definities/Sim_Lichtsensor.cif",
+  "Definities/Sim_Obstakel.cif", "Definities/Sim_Verlichting.cif",
+  "Definities/Sim_Uitstroom.cif", "Definities/Sim_Bluswatertank.cif",
+  "Definities/Sim_InstroomPompkelder.cif", "Definities/Sim_PompkelderVuil.cif",
+  "Definities/Sim_PompkelderSchoon.cif", "Definities/Sim_Vluchtdeur.cif",
+  "Definities/Sim_Dynamische_Vluchtroute.cif", "Definities/Sim_Overdruk.cif",
+  "Definities/Sim_Omroep.cif", "Definities/Sim_OmroepMTK.cif",
+  "Definities/Sim_CCTV.cif", "Definities/Sim_CCTV2.cif";
+
+//   , "Definities/Sim_Kanaal.cif",
+//   "Definities/Sim_Camera.cif",
+//   "Definities/Sim_HF.cif", , ,
+//   "Definities/Sim_Kopdeur.cif", , , ,
+
+import "../Supervisor/Supervisor.cif";
+
+import "Resource Controllers/Verlichting.cif"
+     , "Resource Controllers/Ventilatie.cif"
+//      , "Unit Controllers/Omroep.cif"
+     , "Resource Controllers/CCTV.cif"
+       ;
+
+group sim_model:
+
+  svgfile "Tunnel.svg";
+
+  group Controle_paneel:
+    svgfile "controle_paneel.svg";
+    svgout id "Tijd" text value fmt("%.1f", time);
+
+    plant tabbladen:
+      event e_TestCases, e_Interactie;
+      monitor;
+      location TestCases:
+        initial;
+        edge e_Interactie goto Interactie;
+      location Interactie:
+        edge e_TestCases  goto TestCases;
+
+      svgin id "knop_TestCases"  event e_TestCases;
+      svgin id "knop_Interactie" event e_Interactie;
+      svgout id "knop_TestCases_achtergrond"  attr "fill" value
+        if TestCases : "#b9b9b9" else "#f1f1f1" end;
+      svgout id "knop_Interactie_achtergrond" attr "fill" value
+        if Interactie: "#b9b9b9" else "#f1f1f1" end;
+
+      svgout id "knop_TestCases_achtergrond"  attr "stroke" value
+        if TestCases : "yellow" else "black" end;
+      svgout id "knop_Interactie_achtergrond" attr "stroke" value
+        if Interactie: "yellow" else "black" end;
+
+      svgout id "tabblad_TestCases"  attr "visibility" value
+        if TestCases : "visible" else "hidden" end;
+      svgout id "tabblad_Interactie" attr "visibility" value
+        if Interactie: "visible" else "hidden" end;
+
+    end
+
+  end
+  automaton tabbladen:
+    event e_Tunnels,e_Pompkelders,e_Brandblusinstallatie;
+    monitor;
+
+    svgfile "Tunnel.svg";
+
+      location Tunnels:
+        initial;
+        edge e_Pompkelders goto Pompkelders;
+        edge e_Brandblusinstallatie goto Brandblusinstallatie;
+
+      location Pompkelders:
+        edge e_Tunnels goto Tunnels;
+        edge e_Brandblusinstallatie goto Brandblusinstallatie;
+
+      location Brandblusinstallatie:
+        edge e_Tunnels goto Tunnels;
+        edge e_Pompkelders goto Pompkelders;
+
+    svgin id "tunnels_knop" event e_Tunnels;
+    svgin id "pompkelders_knop" event e_Pompkelders;
+    svgin id "brandblusinstallatie_knop" event e_Brandblusinstallatie;
+
+    svgout id "Tijd" text value fmt("%.1f", time);
+
+    svgout id "layer_Tunnels" attr "visibility" value
+                       if Tunnels: "visible" else "hidden" end;
+    svgout id "layer_Pompkelders" attr "visibility" value
+                       if Pompkelders: "visible" else "hidden" end;
+    svgout id "layer_Brandblusinstallatie" attr "visibility" value
+                       if Brandblusinstallatie: "visible" else "hidden" end;
+    svgout id "tunnels_knop_achtergrond" attr "fill" value
+                       if Tunnels: "#a7a7a7" else "#f1f1f1" end;
+    svgout id "pompkelders_knop_achtergrond" attr "fill" value
+                       if Pompkelders: "#a7a7a7" else "#f1f1f1" end;
+    svgout id "brandblusinstallatie_knop_achtergrond" attr "fill" value
+                       if Brandblusinstallatie: "#a7a7a7" else "#f1f1f1" end;
+  end
+
+end
+
+group sim_buis_1:
+
+    svgfile "Tunnel.svg";
+
+    CCTV: Sim_CCTV(VB1_unit_CCTV.HuidigeSelectie.toerit, VB1_unit_CCTV.HuidigeSelectie.HDwaarschuwing,
+                   VB1_unit_CCTV.HuidigeSelectie.HDrood, VB1_unit_CCTV.HuidigeSelectie.VRI,
+                   VB1_unit_CCTV.HuidigeSelectie.AB, VB1_unit_CCTV.HuidigeSelectie.ingang,
+                   VB1_unit_CCTV.HuidigeSelectie.sectie1, VB1_unit_CCTV.HuidigeSelectie.HPK,
+                   VB1_unit_CCTV.HuidigeSelectie.uitgang, VB1.Beeldregistratie.aan,
+                   VB1_unit_CCTV.Timer.c_aan, VB1_unit_CCTV.Timer.c_resetLopend,
+                   VB1_unit_CCTV.Timer.c_resetUit, VB1_unit_CCTV.Timer.c_herstart,
+                   VB1_unit_CCTV.Timer.u_timeout);
+
+    HoogteDetectieAdvies:  Sim_HoogteDetectie(
+      VB1.HoogteDetectieAdvies.Sensor.u_aan,
+      VB1.HoogteDetectieAdvies.Sensor.u_uit,
+      VB1.HoogteDetectieAdvies.Timer.c_aan,
+      VB1.HoogteDetectieAdvies.Timer.u_timeout,
+      VB1.HoogteDetectieAdvies.Timer.c_resetAfgelopen,
+      VB1.HoogteDetectieAdvies.Lampen.aan,
+      VB1.HoogteDetectieAdvies.Sensor.aan,
+      "buis_1",
+      "advies",
+      5);
+
+    HoogteDetectieToerit:  Sim_HoogteDetectie(
+      VB1.HoogteDetectieToerit.Sensor.u_aan,
+      VB1.HoogteDetectieToerit.Sensor.u_uit,
+      VB1.HoogteDetectieToerit.Timer.c_aan,
+      VB1.HoogteDetectieToerit.Timer.u_timeout,
+      VB1.HoogteDetectieToerit.Timer.c_resetAfgelopen,
+      VB1.HoogteDetectieToerit.Lampen.aan,
+      VB1.HoogteDetectieToerit.Sensor.aan,
+      "buis_1",
+      "toerit",
+      5);
+    svgout id "buis_1_hoogtedetectie_toerit_bord" attr "opacity" value if VB1.HoogteDetectieToerit.Lampen.aan: "1" else "0" end;     //kreeg dit niet elegant geregeld
+
+    HoogteDetectieWaarschuwing: Sim_HoogteDetectie(
+      VB1.HoogteDetectieWaarschuwing.Sensor.u_aan,
+      VB1.HoogteDetectieWaarschuwing.Sensor.u_uit,
+      VB1.HoogteDetectieWaarschuwing.Timer.c_aan,
+      VB1.HoogteDetectieWaarschuwing.Timer.u_timeout,
+      VB1.HoogteDetectieWaarschuwing.Timer.c_resetAfgelopen,
+      VB1.HoogteDetectieWaarschuwing.Lampen.aan,
+      VB1.HoogteDetectieWaarschuwing.Sensor.aan,
+      "buis_1",
+      "waarschuwing",
+      7);
+
+    HoogteDetectieRood: Sim_HoogteDetectie(
+      VB1.HoogteDetectieRood.Sensor.u_aan,
+      VB1.HoogteDetectieRood.Sensor.u_uit,
+      VB1.HoogteDetectieRood.Timer.c_aan,
+      VB1.HoogteDetectieRood.Timer.u_timeout,
+      VB1.HoogteDetectieRood.Timer.c_resetAfgelopen,
+      VB1.HoogteDetectieRood.Lampen.aan,
+      VB1.HoogteDetectieRood.Sensor.aan,
+      "buis_1",
+      "rood",
+      10);
+
+    J32_P1: Sim_J32(
+      VB1.J32.Stand.aan,
+      "j32_buis_1_p1");
+
+    J32_P2: Sim_J32(
+      VB1.J32.Stand.aan,
+      "j32_buis_1_p2");
+
+    Matrixbord_P1: Sim_Matrixbord(
+      VB1.J32.Stand.aan,
+      "buis_1_matrixbord_P1");
+
+    Matrixbord_P2: Sim_Matrixbord(
+      VB1.J32.Stand.aan,
+      "buis_1_matrixbord_P2");
+
+    verkeerslicht_1: Sim_VRI(
+      VB1.VRI.Stand.knipper, VB1.VRI.Stand.rood, VB1.VRI.Stand.geel,
+      VB1.VRI.TimerVrijgaveAan.c_aan, VB1.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB1.VRI.TimerVrijgaveAan.u_timeout,
+      VB1.VRI.TimerVrijgaveGeel.c_aan, VB1.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB1.VRI.TimerVrijgaveGeel.u_timeout,
+      VB1.VRI.TimerVrijgaveRood.c_aan, VB1.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB1.VRI.TimerVrijgaveRood.u_timeout,
+      VB1.VRI.TimerVrijgaveUit.c_aan, VB1.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB1.VRI.TimerVrijgaveUit.u_timeout,
+      VB1.VRI.TimerVrijgavesignaal.c_aan, VB1.VRI.TimerVrijgavesignaal.c_resetLopend, VB1.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB1.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_1_rijstrook_1_");
+
+    verkeerslicht_2: Sim_VRI(
+      VB1.VRI.Stand.knipper, VB1.VRI.Stand.rood, VB1.VRI.Stand.geel,
+      VB1.VRI.TimerVrijgaveAan.c_aan, VB1.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB1.VRI.TimerVrijgaveAan.u_timeout,
+      VB1.VRI.TimerVrijgaveGeel.c_aan, VB1.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB1.VRI.TimerVrijgaveGeel.u_timeout,
+      VB1.VRI.TimerVrijgaveRood.c_aan, VB1.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB1.VRI.TimerVrijgaveRood.u_timeout,
+      VB1.VRI.TimerVrijgaveUit.c_aan, VB1.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB1.VRI.TimerVrijgaveUit.u_timeout,
+      VB1.VRI.TimerVrijgavesignaal.c_aan, VB1.VRI.TimerVrijgavesignaal.c_resetLopend, VB1.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB1.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_1_rijstrook_2_");
+
+    verkeerslicht_3: Sim_VRI(
+      VB1.VRI.Stand.knipper, VB1.VRI.Stand.rood, VB1.VRI.Stand.geel,
+      VB1.VRI.TimerVrijgaveAan.c_aan, VB1.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB1.VRI.TimerVrijgaveAan.u_timeout,
+      VB1.VRI.TimerVrijgaveGeel.c_aan, VB1.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB1.VRI.TimerVrijgaveGeel.u_timeout,
+      VB1.VRI.TimerVrijgaveRood.c_aan, VB1.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB1.VRI.TimerVrijgaveRood.u_timeout,
+      VB1.VRI.TimerVrijgaveUit.c_aan, VB1.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB1.VRI.TimerVrijgaveUit.u_timeout,
+      VB1.VRI.TimerVrijgavesignaal.c_aan, VB1.VRI.TimerVrijgavesignaal.c_resetLopend, VB1.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB1.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_1_rijstrook_3_");
+
+    hulppostkast_a_1: Sim_Hulppostkast_A(
+      VB1.HPKA1.SensorOpen.u_aan,
+      VB1.HPKA1.SensorOpen.u_uit,
+      VB1.HPKA1.Noodtelefoon.u_aan,
+      VB1.HPKA1.Noodtelefoon.u_uit,
+      VB1.HPKA1.Handblusser.u_aan,
+      VB1.HPKA1.Handblusser.u_uit,
+      VB1.HPKA1.Brandslang.u_aan,
+      VB1.HPKA1.Brandslang.u_uit,
+      VB1.HPKA1.SensorOpen.aan,
+      VB1.HPKA1.Noodtelefoon.aan,
+      VB1.HPKA1.Handblusser.aan,
+      VB1.HPKA1.Brandslang.aan,
+      true,
+      true,
+      true,
+      true,
+      "buis_1_a_1_",
+      "buis_1");
+
+    hulppostkast_c_1: Sim_Hulppostkast_C(
+      VB1.HPKC1.SensorOpen.u_aan,
+      VB1.HPKC1.SensorOpen.u_uit,
+      VB1.HPKC1.Noodtelefoon.u_aan,
+      VB1.HPKC1.Noodtelefoon.u_uit,
+      VB1.HPKC1.Handblusser.u_aan,
+      VB1.HPKC1.Handblusser.u_uit,
+      VB1.HPKC1.SensorOpen.aan,
+      VB1.HPKC1.Noodtelefoon.aan,
+      VB1.HPKC1.Handblusser.aan,
+      true,
+      true,
+      true,
+      "buis_1_c_1_",
+      "buis_1");
+
+    lichtsensor: Sim_Lichtsensor(
+        VB1.Lichtsensor.u_0,VB1.Lichtsensor.u_1,
+        VB1.Lichtsensor.u_2,VB1.Lichtsensor.u_3,
+        VB1.Lichtsensor.u_4,VB1.Lichtsensor.u_5,
+        VB1.Lichtsensor.u_6,VB1.Lichtsensor.u_7,
+        VB1.Lichtsensor.u_8,VB1.Lichtsensor.stand0,
+        VB1.Lichtsensor.stand1,VB1.Lichtsensor.stand2,
+        VB1.Lichtsensor.stand3,VB1.Lichtsensor.stand4,
+        VB1.Lichtsensor.stand5,VB1.Lichtsensor.stand6,
+        VB1.Lichtsensor.stand7,VB1.Lichtsensor.stand8,
+        "buis_1");
+
+    verlichting: Sim_Verlichting(
+        VB1_unit_verlichting.HuidigeStand.stand,
+        VB1_unit_verlichting.Timer.c_aan, VB1_unit_verlichting.Timer.c_resetLopend,
+        VB1_unit_verlichting.Timer.c_resetUit, VB1_unit_verlichting.Timer.c_herstart,
+        VB1_unit_verlichting.Timer.u_timeout,
+        "buis_1");
+
+    rookdetectie: Sim_Rookdetectie(
+      VB1.Rookdetectie.u_0,VB1.Rookdetectie.u_1,
+      VB1.Rookdetectie.u_2,VB1.Rookdetectie.u_3,
+      VB1.Rookdetectie.u_4,VB1.Rookdetectie.u_5,
+      VB1.Rookdetectie.u_6,VB1.Rookdetectie.u_7,
+      VB1.Rookdetectie.u_8,VB1.Rookdetectie.stand0,
+      VB1.Rookdetectie.stand1,VB1.Rookdetectie.stand2,
+      VB1.Rookdetectie.stand3,VB1.Rookdetectie.stand4,
+      VB1.Rookdetectie.stand5,VB1.Rookdetectie.stand6,
+      VB1.Rookdetectie.stand7,VB1.Rookdetectie.stand8,
+      "buis_1");
+
+    ventilatie: Sim_Ventilatie(
+      VB1_unit_ventilatie.HuidigeStand.stand,
+      VB1_unit_ventilatie.Timer.c_aan, VB1_unit_ventilatie.Timer.c_resetLopend,
+      VB1_unit_ventilatie.Timer.c_resetUit, VB1_unit_ventilatie.Timer.c_herstart,
+      VB1_unit_ventilatie.Timer.u_timeout,
+      "_ventilatie_2", "buis_1");
+
+//     HF: Sim_HF(
+//         VB1.HF.Boodschap.c_start, VB1.HF.Boodschap.u_afgelopen,
+//         VB1.HF.Modus.radio, VB1.HF.Modus.boodschap, VB1.HF.Modus.mute,
+//         VB1.HF.Boodschap.afspelen, "buis_1");
+
+//     Omroep: Sim_Omroep(
+//         VB1_unit_omroep.WisselTimer.c_aan, VB1_unit_omroep.WisselTimer.c_uit,
+//         VB1_unit_omroep.WisselTimer.u_timeout,
+//         VB1.Omroep.Gebied.buis, VB1.Omroep.Modus.live, VB1.Omroep.Modus.boodschap, VB1.Omroep.Modus.uit,
+//         CCTV.Camera.toerit, CCTV.Camera.HDwaarschuwing, CCTV.Camera.HDrood,
+//         CCTV.Camera.verkeerslichten, CCTV.Camera.afsluitbomen, CCTV.Camera.ingang,
+//         CCTV.Camera.sectie1, CCTV.Camera.hulppostkast, CCTV.Camera.uitgang,
+//         "buis_1", "sectie1");
+
+    SOS: Sim_SOS(VB1.SOS.u_aan, VB1.SOS.u_uit,
+      "buis_1");
+
+    Vluchtdeur: Sim_Vluchtdeur(
+        VB1.Vluchtdeur.SensorOpen.u_aan, VB1.Vluchtdeur.SensorOpen.u_uit,
+        VB1.Vluchtdeur.SensorOpen.aan, VB1.Vluchtdeur.ContourVerlichting.aan,
+        VB1.Vluchtdeur.Geluidsbaken.aan, "buis_1");
+
+    slagboom_rijbanen: Sim_Slagboom(
+      VB1.AB.Beweging.op, VB1.AB.Beweging.neer, VB1.AB.Beweging.geen,
+      VB1.AB.Stand.u_op, VB1.AB.Stand.u_opverlaten, VB1.AB.Stand.u_neer,
+      VB1.AB.Beweging.u_geen, VB1.AB.Beweging.u_op, VB1.AB.Beweging.u_neer,
+      VB1.AB.Commando.c_opstop, VB1.AB.Commando.c_neerstop, VB1.AB.Commando.c_neeronvoorwaardelijkstop,
+      VB1.AB.Commando.c_neerop, VB1.AB.Commando.c_neeronvoorwaardelijkop, VB1.AB.Commando.c_stopop,
+      VB1.AB.Commando.c_opneer, VB1.AB.Commando.c_neeronvoorwaardelijkneer, VB1.AB.Commando.c_stopneer,
+      VB1.AB.Commando.c_opneeronvoorwaardelijk, VB1.AB.Commando.c_neerneeronvoorwaardelijk, VB1.AB.Commando.c_stopneeronvoorwaardelijk);
+
+    slagboom_vluchtstrook: Sim_Slagboom(
+      VB1.AB.Beweging.op, VB1.AB.Beweging.neer, VB1.AB.Beweging.geen,
+      VB1.AB.Stand.u_op, VB1.AB.Stand.u_opverlaten, VB1.AB.Stand.u_neer,
+      VB1.AB.Beweging.u_geen, VB1.AB.Beweging.u_op, VB1.AB.Beweging.u_neer,
+      VB1.AB.Commando.c_opstop, VB1.AB.Commando.c_neerstop, VB1.AB.Commando.c_neeronvoorwaardelijkstop,
+      VB1.AB.Commando.c_neerop, VB1.AB.Commando.c_neeronvoorwaardelijkop, VB1.AB.Commando.c_stopop,
+      VB1.AB.Commando.c_opneer, VB1.AB.Commando.c_neeronvoorwaardelijkneer, VB1.AB.Commando.c_stopneer,
+      VB1.AB.Commando.c_opneeronvoorwaardelijk, VB1.AB.Commando.c_neerneeronvoorwaardelijk, VB1.AB.Commando.c_stopneeronvoorwaardelijk);
+
+    slagboom_rijbanen_visu: driebaans_slagboomVisu(
+      slagboom_rijbanen,
+      "buis_1_");
+    slagboom_vluchtstrook_visu: vluchtstrook_slagboomVisu(
+      slagboom_vluchtstrook,
+      "buis_1_");
+
+    ObstakelRijstrook: Sim_Obstakel(
+      VB1.AB.ObstakelDetectie.u_aan, VB1.AB.ObstakelDetectie.u_uit,
+      VB1.AB.ObstakelDetectie.aan, "buis_1_rijstrook");
+
+    ObstakelVluchtstrook: Sim_Obstakel(
+      VB1.AB.ObstakelDetectie.u_aan, VB1.AB.ObstakelDetectie.u_uit,
+      VB1.AB.ObstakelDetectie.aan, "buis_1_vluchtstrook");
+
+    Overdruk: Sim_Overdruk("buis_1_overdruk_1", MTK.Overdruk.links);
+
+end
+
+group sim_buis_2:
+
+    svgfile "Tunnel.svg";
+
+    CCTV: Sim_CCTV2(VB2_unit_CCTV.HuidigeSelectie.toerit, VB2_unit_CCTV.HuidigeSelectie.VRI,
+                   VB2_unit_CCTV.HuidigeSelectie.AB, VB2_unit_CCTV.HuidigeSelectie.ingang,
+                   VB2_unit_CCTV.HuidigeSelectie.sectie1, VB2_unit_CCTV.HuidigeSelectie.HPK,
+                   VB2_unit_CCTV.HuidigeSelectie.uitgang, VB2.Beeldregistratie.aan,
+                   VB2_unit_CCTV.Timer.c_aan, VB2_unit_CCTV.Timer.c_resetLopend,
+                   VB2_unit_CCTV.Timer.c_resetUit, VB2_unit_CCTV.Timer.c_herstart,
+                   VB2_unit_CCTV.Timer.u_timeout);
+
+    J32_P1: Sim_J32(
+      VB2.J32.Stand.aan,
+      "j32_buis_2_p1");
+
+    J32_P2: Sim_J32(
+      VB2.J32.Stand.aan,
+      "j32_buis_2_p2");
+
+    Matrixbord_P1: Sim_Matrixbord(
+      VB2.J32.Stand.aan,
+      "buis_2_matrixbord_P1");
+
+    Matrixbord_P2: Sim_Matrixbord(
+      VB2.J32.Stand.aan,
+      "buis_2_matrixbord_P2");
+
+    verkeerslicht_1: Sim_VRI(
+      VB2.VRI.Stand.knipper, VB2.VRI.Stand.rood, VB2.VRI.Stand.geel,
+      VB2.VRI.TimerVrijgaveAan.c_aan, VB2.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB2.VRI.TimerVrijgaveAan.u_timeout,
+      VB2.VRI.TimerVrijgaveGeel.c_aan, VB2.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB2.VRI.TimerVrijgaveGeel.u_timeout,
+      VB2.VRI.TimerVrijgaveRood.c_aan, VB2.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB2.VRI.TimerVrijgaveRood.u_timeout,
+      VB2.VRI.TimerVrijgaveUit.c_aan, VB2.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB2.VRI.TimerVrijgaveUit.u_timeout,
+      VB2.VRI.TimerVrijgavesignaal.c_aan, VB2.VRI.TimerVrijgavesignaal.c_resetLopend, VB2.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB2.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_2_rijstrook_1_");
+
+    verkeerslicht_2: Sim_VRI(
+      VB2.VRI.Stand.knipper, VB2.VRI.Stand.rood, VB2.VRI.Stand.geel,
+      VB2.VRI.TimerVrijgaveAan.c_aan, VB2.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB2.VRI.TimerVrijgaveAan.u_timeout,
+      VB2.VRI.TimerVrijgaveGeel.c_aan, VB2.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB2.VRI.TimerVrijgaveGeel.u_timeout,
+      VB2.VRI.TimerVrijgaveRood.c_aan, VB2.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB2.VRI.TimerVrijgaveRood.u_timeout,
+      VB2.VRI.TimerVrijgaveUit.c_aan, VB2.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB2.VRI.TimerVrijgaveUit.u_timeout,
+      VB2.VRI.TimerVrijgavesignaal.c_aan, VB2.VRI.TimerVrijgavesignaal.c_resetLopend, VB2.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB2.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_2_rijstrook_2_");
+
+    verkeerslicht_3: Sim_VRI(
+      VB2.VRI.Stand.knipper, VB2.VRI.Stand.rood, VB2.VRI.Stand.geel,
+      VB2.VRI.TimerVrijgaveAan.c_aan, VB2.VRI.TimerVrijgaveAan.c_resetAfgelopen, VB2.VRI.TimerVrijgaveAan.u_timeout,
+      VB2.VRI.TimerVrijgaveGeel.c_aan, VB2.VRI.TimerVrijgaveGeel.c_resetAfgelopen, VB2.VRI.TimerVrijgaveGeel.u_timeout,
+      VB2.VRI.TimerVrijgaveRood.c_aan, VB2.VRI.TimerVrijgaveRood.c_resetAfgelopen, VB2.VRI.TimerVrijgaveRood.u_timeout,
+      VB2.VRI.TimerVrijgaveUit.c_aan, VB2.VRI.TimerVrijgaveUit.c_resetAfgelopen, VB2.VRI.TimerVrijgaveUit.u_timeout,
+      VB2.VRI.TimerVrijgavesignaal.c_aan, VB2.VRI.TimerVrijgavesignaal.c_resetLopend, VB2.VRI.TimerVrijgavesignaal.c_resetAfgelopen, VB2.VRI.TimerVrijgavesignaal.u_timeout,
+      "buis_2_rijstrook_3_");
+
+
+    HoogteDetectieToerit:  Sim_HoogteDetectie(
+      VB2.HoogteDetectieToerit.Sensor.u_aan,
+      VB2.HoogteDetectieToerit.Sensor.u_uit,
+      VB2.HoogteDetectieToerit.Timer.c_aan,
+      VB2.HoogteDetectieToerit.Timer.u_timeout,
+      VB2.HoogteDetectieToerit.Timer.c_resetAfgelopen,
+      VB2.HoogteDetectieToerit.Lampen.aan,
+      VB2.HoogteDetectieToerit.Sensor.aan,
+      "buis_2",
+      "toerit",
+      5);
+
+    hulppostkast_a_1: Sim_Hulppostkast_A(
+      VB2.HPKA1.SensorOpen.u_aan,
+      VB2.HPKA1.SensorOpen.u_uit,
+      VB2.HPKA1.Noodtelefoon.u_aan,
+      VB2.HPKA1.Noodtelefoon.u_uit,
+      VB2.HPKA1.Handblusser.u_aan,
+      VB2.HPKA1.Handblusser.u_uit,
+      VB2.HPKA1.Brandslang.u_aan,
+      VB2.HPKA1.Brandslang.u_uit,
+      VB2.HPKA1.SensorOpen.aan,
+      VB2.HPKA1.Noodtelefoon.aan,
+      VB2.HPKA1.Handblusser.aan,
+      VB2.HPKA1.Brandslang.aan,
+      true,
+      true,
+      true,
+      true,
+      "buis_2_a_1_",
+      "buis_2");
+
+    hulppostkast_c_1: Sim_Hulppostkast_C(
+      VB2.HPKC1.SensorOpen.u_aan,
+      VB2.HPKC1.SensorOpen.u_uit,
+      VB2.HPKC1.Noodtelefoon.u_aan,
+      VB2.HPKC1.Noodtelefoon.u_uit,
+      VB2.HPKC1.Handblusser.u_aan,
+      VB2.HPKC1.Handblusser.u_uit,
+      VB2.HPKC1.SensorOpen.aan,
+      VB2.HPKC1.Noodtelefoon.aan,
+      VB2.HPKC1.Handblusser.aan,
+      true,
+      true,
+      true,
+      "buis_2_c_1_",
+      "buis_2");
+
+    lichtsensor: Sim_Lichtsensor(
+        VB2.Lichtsensor.u_0,VB2.Lichtsensor.u_1,
+        VB2.Lichtsensor.u_2,VB2.Lichtsensor.u_3,
+        VB2.Lichtsensor.u_4,VB2.Lichtsensor.u_5,
+        VB2.Lichtsensor.u_6,VB2.Lichtsensor.u_7,
+        VB2.Lichtsensor.u_8,VB2.Lichtsensor.stand0,
+        VB2.Lichtsensor.stand1,VB2.Lichtsensor.stand2,
+        VB2.Lichtsensor.stand3,VB2.Lichtsensor.stand4,
+        VB2.Lichtsensor.stand5,VB2.Lichtsensor.stand6,
+        VB2.Lichtsensor.stand7,VB2.Lichtsensor.stand8,
+        "buis_2");
+
+    verlichting: Sim_Verlichting(
+        VB2_unit_verlichting.HuidigeStand.stand,
+        VB2_unit_verlichting.Timer.c_aan, VB2_unit_verlichting.Timer.c_resetLopend,
+        VB2_unit_verlichting.Timer.c_resetUit, VB2_unit_verlichting.Timer.c_herstart,
+        VB2_unit_verlichting.Timer.u_timeout,
+        "buis_2");
+
+    rookdetectie: Sim_Rookdetectie(
+      VB2.Rookdetectie.u_0,VB2.Rookdetectie.u_1,
+      VB2.Rookdetectie.u_2,VB2.Rookdetectie.u_3,
+      VB2.Rookdetectie.u_4,VB2.Rookdetectie.u_5,
+      VB2.Rookdetectie.u_6,VB2.Rookdetectie.u_7,
+      VB2.Rookdetectie.u_8,VB2.Rookdetectie.stand0,
+      VB2.Rookdetectie.stand1,VB2.Rookdetectie.stand2,
+      VB2.Rookdetectie.stand3,VB2.Rookdetectie.stand4,
+      VB2.Rookdetectie.stand5,VB2.Rookdetectie.stand6,
+      VB2.Rookdetectie.stand7,VB2.Rookdetectie.stand8,
+      "buis_2");
+
+    ventilatie: Sim_Ventilatie(
+      VB2_unit_ventilatie.HuidigeStand.stand,
+      VB2_unit_ventilatie.Timer.c_aan, VB2_unit_ventilatie.Timer.c_resetLopend,
+      VB2_unit_ventilatie.Timer.c_resetUit, VB2_unit_ventilatie.Timer.c_herstart,
+      VB2_unit_ventilatie.Timer.u_timeout,
+      "_ventilatie_2", "buis_2");
+
+//     HF: ^Sim_HF(
+//         VB2.HF.Boodschap.c_start, VB2.HF.Boodschap.u_afgelopen,
+//         VB2.HF.Modus.radio, VB2.HF.Modus.boodschap, VB2.HF.Modus.mute,
+//         VB2.HF.Boodschap.afspelen, "buis_2");
+
+//     Omroep: Sim_Omroep(
+//         VB2_unit_omroep.WisselTimer.c_aan, VB2_unit_omroep.WisselTimer.c_uit,
+//         VB2_unit_omroep.WisselTimer.u_timeout,
+//         VB2.Omroep.Gebied.buis, VB2.Omroep.Modus.live, VB2.Omroep.Modus.boodschap, VB2.Omroep.Modus.uit,
+//         CCTV.Camera.toerit, CCTV.Camera.HDwaarschuwing, CCTV.Camera.HDrood,
+//         CCTV.Camera.verkeerslichten, CCTV.Camera.afsluitbomen, CCTV.Camera.ingang,
+//         CCTV.Camera.sectie1, CCTV.Camera.hulppostkast, CCTV.Camera.uitgang,
+//         "buis_2", "sectie2");
+
+    SOS: Sim_SOS(VB2.SOS.u_aan, VB2.SOS.u_uit,
+      "buis_2");
+
+    Vluchtdeur: Sim_Vluchtdeur(
+        VB2.Vluchtdeur.SensorOpen.u_aan, VB2.Vluchtdeur.SensorOpen.u_uit,
+        VB2.Vluchtdeur.SensorOpen.aan, VB2.Vluchtdeur.ContourVerlichting.aan,
+        VB2.Vluchtdeur.Geluidsbaken.aan, "buis_2");
+
+    slagboom_rijbanen: Sim_Slagboom(
+      VB2.AB.Beweging.op, VB2.AB.Beweging.neer, VB2.AB.Beweging.geen,
+      VB2.AB.Stand.u_op, VB2.AB.Stand.u_opverlaten, VB2.AB.Stand.u_neer,
+      VB2.AB.Beweging.u_geen, VB2.AB.Beweging.u_op, VB2.AB.Beweging.u_neer,
+      VB2.AB.Commando.c_opstop, VB2.AB.Commando.c_neerstop, VB2.AB.Commando.c_neeronvoorwaardelijkstop,
+      VB2.AB.Commando.c_neerop, VB2.AB.Commando.c_neeronvoorwaardelijkop, VB2.AB.Commando.c_stopop,
+      VB2.AB.Commando.c_opneer, VB2.AB.Commando.c_neeronvoorwaardelijkneer, VB2.AB.Commando.c_stopneer,
+      VB2.AB.Commando.c_opneeronvoorwaardelijk, VB2.AB.Commando.c_neerneeronvoorwaardelijk, VB2.AB.Commando.c_stopneeronvoorwaardelijk);
+
+    slagboom_vluchtstrook: Sim_Slagboom(
+      VB2.AB.Beweging.op, VB2.AB.Beweging.neer, VB2.AB.Beweging.geen,
+      VB2.AB.Stand.u_op, VB2.AB.Stand.u_opverlaten, VB2.AB.Stand.u_neer,
+      VB2.AB.Beweging.u_geen, VB2.AB.Beweging.u_op, VB2.AB.Beweging.u_neer,
+      VB2.AB.Commando.c_opstop, VB2.AB.Commando.c_neerstop, VB2.AB.Commando.c_neeronvoorwaardelijkstop,
+      VB2.AB.Commando.c_neerop, VB2.AB.Commando.c_neeronvoorwaardelijkop, VB2.AB.Commando.c_stopop,
+      VB2.AB.Commando.c_opneer, VB2.AB.Commando.c_neeronvoorwaardelijkneer, VB2.AB.Commando.c_stopneer,
+      VB2.AB.Commando.c_opneeronvoorwaardelijk, VB2.AB.Commando.c_neerneeronvoorwaardelijk, VB2.AB.Commando.c_stopneeronvoorwaardelijk);
+
+    slagboom_rijbanen_visu: driebaans_slagboomVisu(
+      slagboom_rijbanen,
+      "buis_2_");
+    slagboom_vluchtstrook_visu: vluchtstrook_slagboomVisu(
+      slagboom_vluchtstrook,
+      "buis_2_");
+
+    ObstakelRijbaan: Sim_Obstakel(
+      VB2.AB.ObstakelDetectie.u_aan, VB2.AB.ObstakelDetectie.u_uit,
+      VB2.AB.ObstakelDetectie.aan, "buis_2_rijstrook");
+
+    ObstakelVluchstrook: Sim_Obstakel(
+      VB2.AB.ObstakelDetectie.u_aan, VB2.AB.ObstakelDetectie.u_uit,
+      VB2.AB.ObstakelDetectie.aan, "buis_2_vluchtstrook");
+
+    Overdruk: Sim_Overdruk("buis_2_overdruk_1", MTK.Overdruk.rechts);
+
+end
+
+group sim_MTK:
+
+    svgfile "Tunnel.svg";
+
+//     Kopdeur1: Sim_Kopdeur(T.MTK.Kopdeur1.u_aan, T.MTK.Kopdeur1.u_uit, T.MTK.Kopdeur1.aan, "1");
+//
+//     Kopdeur2: Sim_Kopdeur(T.MTK.Kopdeur2.u_aan, T.MTK.Kopdeur2.u_uit, T.MTK.Kopdeur2.aan, "2");
+//
+    Verlichting: Sim_Licht_MTK("middentunnelkanaal_", MTK.Verlichting.aan);
+
+    Omroep: Sim_OmroepMTK(MTK.Omroep.Modus.uit, MTK.Omroep.Modus.boodschap, MTK.Omroep.Modus.live);
+
+    DVIoplopend: Sim_DVI("_oplopend", MTK.DVI.oplopend);
+
+    DVIaflopend: Sim_DVI("_aflopend", MTK.DVI.aflopend);
+
+    Sim_CaDoNoord: Sim_CaDo(
+        CaDoNoord.Beweging.op, CaDoNoord.Beweging.neer, CaDoNoord.Beweging.geen,
+        CaDoNoord.Stand.u_op, CaDoNoord.Stand.u_opverlaten, CaDoNoord.Stand.u_neer,
+        CaDoNoord.Beweging.u_geen, CaDoNoord.Beweging.u_op, CaDoNoord.Beweging.u_neer,
+        CaDoNoord.Commando.c_opstop, CaDoNoord.Commando.c_neerstop,
+        CaDoNoord.Commando.c_stopop, CaDoNoord.Commando.c_neerop,
+        CaDoNoord.Commando.c_stopneer, CaDoNoord.Commando.c_opneer);
+
+    slagboom_CaDoNoord_visu: CaDo_slagboomVisu(
+      Sim_CaDoNoord,
+      "noord");
+
+    Sim_CaDoZuid: Sim_CaDo(
+        CaDoZuid.Beweging.op, CaDoZuid.Beweging.neer, CaDoZuid.Beweging.geen,
+        CaDoZuid.Stand.u_op, CaDoZuid.Stand.u_opverlaten, CaDoZuid.Stand.u_neer,
+        CaDoZuid.Beweging.u_geen, CaDoZuid.Beweging.u_op, CaDoZuid.Beweging.u_neer,
+        CaDoZuid.Commando.c_opstop, CaDoZuid.Commando.c_neerstop,
+        CaDoZuid.Commando.c_stopop, CaDoZuid.Commando.c_neerop,
+        CaDoZuid.Commando.c_stopneer, CaDoZuid.Commando.c_opneer);
+
+    slagboom_CaDoZuid_visu: CaDo_slagboomVisu(
+      Sim_CaDoZuid,
+      "zuid");
+
+end
+
+group sim_BBI:
+
+    svgfile "Tunnel.svg";
+
+    uitstroom: Sim_Uitstroom(
+        BBI.Pomp.aan,
+        VB1.HPKA1.Brandslang.aan,
+        VB2.HPKA1.Brandslang.aan);
+
+    brandblusinstallatie: Sim_Bluswatertank(
+        BBI.Pomp.aan,
+        BBI.Sensors.hoog,
+        uitstroom.volume_uitstroom,
+        BBI.Sensors.u_laag_aan,
+        BBI.Sensors.u_laag_uit,
+        BBI.Sensors.u_hoog_aan,
+        BBI.Sensors.u_hoog_uit,
+        "brandblusinstallatie_1_");
+end
+
+group sim_pompkelder:
+
+    svgfile "Tunnel.svg";
+
+    instroom_schoon: Sim_InstroomPompkelder(
+        "knop_schoonwater_plus",
+        "knop_schoonwater_min",
+        "schoonwater_stand");
+
+    instroom_vuil: Sim_InstroomPompkelder(
+        "knop_vuilwater_plus",
+        "knop_vuilwater_min",
+        "vuilwater_stand");
+
+    pompkelder_schoon: Sim_PompkelderSchoon(
+        KelderSchoon.Sensors.u_S1aan, KelderSchoon.Sensors.u_S1uit,
+        KelderSchoon.Sensors.u_S2aan, KelderSchoon.Sensors.u_S2uit,
+        KelderSchoon.Sensors.u_S3aan, KelderSchoon.Sensors.u_S3uit,
+        KelderSchoon.Sensors.u_S4aan, KelderSchoon.Sensors.u_S4uit,
+        KelderSchoon.Sensors.u_S5aan, KelderSchoon.Sensors.u_S5uit,
+        KelderSchoon.Pomp.aan,
+        instroom_schoon.regenen,
+        instroom_schoon.volume_regen);
+
+    pompkelder_vuil: Sim_PompkelderVuil(
+        KelderVuil.SensorLaagwater.u_aan,
+        KelderVuil.SensorLaagwater.u_uit,
+        KelderVuil.Pomp.aan,
+        instroom_vuil.regenen,
+        instroom_vuil.volume_regen);
+end

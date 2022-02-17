@@ -1,0 +1,101 @@
+group def KnoppenVerkeersbuis(alg bool VBOperationeel, VBCalamiteit, VBHerstel, VBEvacuatie, VBOnderhoud, VBStandby,
+                                       VB2Ondersteunend, VB2Operationeel, VB2Standby, VB2Onderhoud, VBKnopLos, VB2Calamiteit, VB2Herstel,
+                                       popupAan, popupUit, popupTimerAan, popupTimerUit, popupUit2, popupTimerUit2):
+
+  plant KnopOperationeel:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopCalamiteit:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopHerstel:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopEvacuatie:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopOnderhoud:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopBevestigen:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant KnopAfwijzen:
+    uncontrollable u_indrukken;
+    location:
+      initial; marked;
+      edge u_indrukken;
+  end
+
+  plant Waarnemer:
+    monitor
+      KnopOperationeel.u_indrukken,
+      KnopCalamiteit.u_indrukken,
+      KnopHerstel.u_indrukken,
+      KnopEvacuatie.u_indrukken,
+      KnopOnderhoud.u_indrukken,
+      KnopBevestigen.u_indrukken,
+      KnopAfwijzen.u_indrukken;
+
+   controllable
+      c_operationeelKlaar,
+      c_calamiteitPopUpKlaar,
+      c_calamiteitEvacuatieKlaar,
+      c_herstelKlaar,
+      c_evacuatieKlaar,
+      c_onderhoudKlaar,
+      c_BevestigenKlaar,
+      c_AfwijzenKlaar;
+
+    location los:
+      initial; marked;
+      edge KnopOperationeel.u_indrukken when (VBHerstel or VBOnderhoud or VBStandby) and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto operationeel;
+      edge KnopCalamiteit.u_indrukken   when (VBOperationeel or VBHerstel or VBOnderhoud or VBStandby) and not VB2Calamiteit and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto calamiteitPopUp;
+      edge KnopCalamiteit.u_indrukken   when VBEvacuatie and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto calamiteitEvacuatie;
+      edge KnopHerstel.u_indrukken      when ((VBCalamiteit and VB2Ondersteunend) or VBOnderhoud) and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto herstel;
+      edge KnopEvacuatie.u_indrukken    when VBCalamiteit and VB2Ondersteunend and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto evacuatie;
+      edge KnopOnderhoud.u_indrukken    when (VBOperationeel or (VBHerstel)) and popupUit and popupUit2 and popupTimerUit and popupTimerUit2 and VBKnopLos goto onderhoud;
+      edge KnopBevestigen.u_indrukken   when popupAan and popupTimerAan and VBKnopLos goto bevestigen;
+      edge KnopAfwijzen.u_indrukken     when popupAan and popupTimerAan and VBKnopLos goto afwijzen;
+    location operationeel:
+      edge c_operationeelKlaar  when VBOperationeel goto los;
+    location calamiteitPopUp:
+      edge c_calamiteitPopUpKlaar    when popupAan goto los;
+    location calamiteitEvacuatie:
+      edge c_calamiteitEvacuatieKlaar    when VBCalamiteit goto los;
+    location herstel:
+      edge c_herstelKlaar       when VBHerstel and (VB2Herstel or VB2Operationeel or VB2Onderhoud or VB2Standby) goto los;
+    location evacuatie:
+      edge c_evacuatieKlaar     when VBEvacuatie goto los;
+    location onderhoud:
+      edge c_onderhoudKlaar     when VBOnderhoud goto los;
+    location bevestigen:
+      edge c_BevestigenKlaar    when popupUit and VBCalamiteit and VB2Ondersteunend and popupTimerUit goto los;
+    location afwijzen:
+      edge c_AfwijzenKlaar      when popupUit and popupTimerUit goto los;
+  end
+end

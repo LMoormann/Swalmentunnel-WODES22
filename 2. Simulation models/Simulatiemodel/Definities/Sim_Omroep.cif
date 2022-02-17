@@ -1,0 +1,37 @@
+import "Sim_Timer.cif";
+
+group def Sim_Omroep(controllable c_aan, c_uit;
+                     uncontrollable u_timeout;
+                     alg bool sectiebuis, live, boodschap, uit, toerit, WHD, RHD, VRI, afsluitbomen, ingang, sectie, hpk, uitgang;
+                     alg string locatie, sectieX):
+
+    plant HybrideTimer:
+
+      cont t = 0 der if uit: 0
+                   else -1 end;
+
+      location uit:
+          initial; marked;
+          edge c_aan do t := 3 goto aan1;
+      location aan1:
+          edge c_uit goto uit;
+          edge u_timeout when t <= 0 do t := 3 goto aan2;
+      location aan2:
+          edge c_uit goto uit;
+          edge u_timeout when t <= 0 do t := 3 goto aan1;
+    end
+
+    svgout id locatie+"_luidspreker_aan" attr "opacity" value if sectiebuis and (live or boodschap): "1" else "0" end;
+    svgout id locatie+"_luidspreker_live" attr "opacity" value if sectiebuis and live: "1" else "0" end;
+    svgout id locatie+"_luidspreker_uit" attr "opacity" value if uit: "1" else "0" end;
+
+    svgout id locatie+"_luidspreker_toerit" attr "visibility" value if not sectiebuis and (live or boodschap) and toerit: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_hoogtedetectie" attr "visibility" value if not sectiebuis and (live or boodschap) and (WHD or RHD): "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_verkeerslichten" attr "visibility" value if not sectiebuis and (live or boodschap) and VRI: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_afsluitbomen" attr "visibility" value if not sectiebuis and (live or boodschap) and afsluitbomen: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_ingang" attr "visibility" value if not sectiebuis and (live or boodschap) and ingang: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_"+sectieX attr "visibility" value if not sectiebuis and (live or boodschap) and sectie: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_hpk" attr "visibility" value if not sectiebuis and (live or boodschap) and hpk: "visible" else "hidden" end;
+    svgout id locatie+"_luidspreker_uitgang" attr "visibility" value if not sectiebuis and (live or boodschap) and uitgang: "visible" else "hidden" end;
+
+end

@@ -1,0 +1,58 @@
+plant def Timer():
+  controllable c_aan, c_resetAfgelopen, c_resetLopend;
+  uncontrollable u_timeout;
+
+  location uit:
+    initial; marked;
+    edge c_aan goto lopend;
+  location lopend:
+    edge c_resetLopend goto uit;
+    edge u_timeout goto afgelopen;
+  location afgelopen:
+    edge c_resetAfgelopen goto uit;
+end
+
+plant def WisselTimer(alg real looptijd):
+	cont t = 0 der if uit: 0 else -1 end;
+
+	controllable c_aan, c_uit;
+  uncontrollable u_timeout;
+
+  location uit:
+    initial; marked;
+    edge c_aan do t := looptijd goto aan1;
+  location aan1:
+    edge c_uit     goto uit;
+    edge u_timeout when t <= 0 do t:= looptijd goto aan2;
+  location aan2:
+    edge c_uit     goto uit;
+    edge u_timeout when t <= 0 do t:= looptijd goto aan1;
+end
+
+plant def TimerSimpel():
+  controllable c_aan, c_resetAfgelopen;
+  uncontrollable u_timeout;
+  location uit:
+    initial; marked;
+    edge c_aan goto lopend;
+  location lopend:
+    edge u_timeout goto afgelopen;
+  location afgelopen:
+    edge c_resetAfgelopen goto uit;
+end
+
+// plant def TimerEXT():
+// 	input bool I;
+//   controllable c_aan, c_reset, c_reset1;
+// //  controllable c_aan, c_reset;
+//   uncontrollable u_timeout;
+//   location uit:
+//     initial; marked;
+//     edge c_aan goto lopend;
+//   location lopend:
+//     edge c_reset1   goto uit;
+//     edge u_timeout when I goto afgelopen;
+//   location afgelopen:
+//     edge c_reset goto uit;
+// end
+
