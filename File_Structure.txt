@@ -1,0 +1,10 @@
+This repository contains the following models of the Swalmen tunnel.
+
+1. Plant and requirement models
+Contains the discrete plant model and the requirements, and the synthesized supervisor.
+
+2. Simulation models
+Contains a copy of the synthesized supervisor, the resource controllers, the hybrid simulation model, and the Graphical User Interface model.
+
+3. PLC code
+Contains the PLC code for an ABB PLC for the supervisory controller and the resource controllers.
