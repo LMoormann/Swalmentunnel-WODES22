@@ -1,0 +1,14 @@
+from "lib:cif3" import *;
+
+tool int plcgen2(string... args):
+    return app("nl.tue.cif.v3x0x0.plcgen2", "nl.tue.cif.v3x0x0.plcgen2.app.PlcGen2App", args);
+end
+
+string plantFile       = "Combined.cif";
+string outputFolder    = "PLC_code";
+
+plcgen2(plantFile,
+    "-o", outputFolder,
+    "-t", "abb",
+    "-m debug",
+    "--devmode=1");

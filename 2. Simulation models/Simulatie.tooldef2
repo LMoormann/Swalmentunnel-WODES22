@@ -17,5 +17,5 @@ cif3sim(sim_path,
         "--max-delay=10.0",
         "--option-dialog=no",
         "--stateviz=no",
-        "-o chosen-trans"
+//         "-o chosen-trans"
         );

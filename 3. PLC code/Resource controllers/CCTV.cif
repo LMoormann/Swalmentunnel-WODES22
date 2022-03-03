@@ -1,8 +1,8 @@
 group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
-                             richtingMee, richtingTegen;
-                    controllable c_selectieRechts, c_selectieLinks;
-                    uncontrollable u_HDwaarschuwingAan, u_HDroodAan;
-                    alg bool VRIAan, ABAan, HPKAan):
+                             richtingMee, richtingTegen,
+                             selectieRechts, selectieLinks,
+                             HDWAan, HDRAan,
+                             VRIAan, ABAan, HPKAan):
 
   // Inputs
   plant GewensteStandSchouwen:
@@ -32,20 +32,19 @@ group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   end
 
   plant GewensteSelectie:
-    controllable c_klaar;
-    monitor c_selectieRechts, c_selectieLinks;
+    uncontrollable u_rechts, u_links, u_klaar;
     location geen:
       initial; marked;
-      edge c_selectieRechts goto rechts;
-      edge c_selectieLinks goto links;
+      edge u_rechts when selectieRechts goto rechts;
+      edge u_links when selectieLinks goto links;
     location rechts:
       marked;
-      edge c_klaar goto geen;
-      edge c_selectieLinks goto links;
+      edge u_klaar when not selectieRechts and not selectieLinks goto geen;
+      edge u_links when selectieLinks goto links;
     location links:
       marked;
-      edge c_klaar goto geen;
-      edge c_selectieRechts goto rechts;
+      edge u_klaar when not selectieRechts and not selectieLinks goto geen;
+      edge u_rechts when selectieRechts goto rechts;
   end
 
   plant VRISensor:
@@ -79,6 +78,28 @@ group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
     location aan:
       marked;
       edge u_uit when not HPKAan goto uit;
+  end
+
+  plant HDWSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when HDWAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not HDWAan goto uit;
+  end
+
+  plant HDRSensor:
+    uncontrollable u_aan, u_uit;
+    location uit:
+      initial;
+      marked;
+      edge u_aan when HDRAan goto aan;
+    location aan:
+      marked;
+      edge u_uit when not HDRAan goto uit;
   end
 
   // Outputs
@@ -249,27 +270,27 @@ group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   requirement Timer.c_herstart needs not HuidigeStandSchouwen.uit;
 
   requirement Links:
-    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    monitor GewensteSelectie.u_links, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
     location loc1:
       initial; marked;
-      edge c_selectieLinks when not HuidigeSelectie.toerit goto loc2;
-      edge HuidigeSelectie.c_links, GewensteSelectie.c_klaar;
+      edge GewensteSelectie.u_links when not HuidigeSelectie.toerit goto loc2;
+      edge HuidigeSelectie.c_links, GewensteSelectie.u_klaar;
     location loc2:
       edge HuidigeSelectie.c_links goto loc3;
     location loc3:
-      edge GewensteSelectie.c_klaar, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+      edge GewensteSelectie.u_klaar, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
   end
 
   requirement Rechts:
-    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    monitor GewensteSelectie.u_links, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
     location loc1:
       initial; marked;
-      edge c_selectieRechts when not HuidigeSelectie.uitgang goto loc2;
-      edge HuidigeSelectie.c_rechts, GewensteSelectie.c_klaar;
+      edge GewensteSelectie.u_rechts when not HuidigeSelectie.uitgang goto loc2;
+      edge HuidigeSelectie.c_rechts, GewensteSelectie.u_klaar;
     location loc2:
       edge HuidigeSelectie.c_rechts goto loc3;
     location loc3:
-      edge GewensteSelectie.c_klaar, c_selectieLinks, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+      edge GewensteSelectie.u_klaar, GewensteSelectie.u_links, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
   end
 
   requirement AlterneerTimer:
@@ -307,19 +328,19 @@ group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
       edge c_camera_selectie goto loc1;
   end
 
-  AlterneerHDwaarschuwing: AlterneerSensor(u_HDwaarschuwingAan, HuidigeSelectie.c_HDwaarschuwing);
-  AlterneerHDrood: AlterneerSensor(u_HDroodAan, HuidigeSelectie.c_HDrood);
+  AlterneerHDwaarschuwing: AlterneerSensor(HDWSensor.u_aan, HuidigeSelectie.c_HDwaarschuwing);
+  AlterneerHDrood: AlterneerSensor(HDRSensor.u_aan, HuidigeSelectie.c_HDrood);
   AlterneerVRI: AlterneerSensor(VRISensor.u_aan, HuidigeSelectie.c_VRI);
   AlterneerAB: AlterneerSensor(ABSensor.u_aan, HuidigeSelectie.c_AB);
   AlterneerHPK: AlterneerSensor(HPKSensor.u_aan, HuidigeSelectie.c_HPK);
 
   requirement Stop:
-    monitor u_HDwaarschuwingAan, u_HDroodAan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan,
-    GewensteStandSchouwen.u_stop, c_selectieLinks, c_selectieRechts;
+    monitor HDWSensor.u_aan, HDRSensor.u_aan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan,
+    GewensteStandSchouwen.u_stop, GewensteSelectie.u_links, GewensteSelectie.u_rechts;
     location loc1:
       initial; marked;
-      edge u_HDwaarschuwingAan, u_HDroodAan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan when not HuidigeStandSchouwen.uit goto loc2;
-      edge c_selectieLinks, c_selectieRechts when not HuidigeStandSchouwen.uit goto loc2;
+      edge HDWSensor.u_aan, HDRSensor.u_aan, VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan when not HuidigeStandSchouwen.uit goto loc2;
+      edge GewensteSelectie.u_links, GewensteSelectie.u_rechts when not HuidigeStandSchouwen.uit goto loc2;
       edge GewensteStandSchouwen.u_stop when not HuidigeStandSchouwen.uit goto loc2;
     location loc2:
       edge HuidigeStandSchouwen.c_stop goto loc1;
@@ -344,16 +365,20 @@ group def Unit_CCTV1(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   end
 end
 
-VB1_unit_CCTV: Unit_CCTV1(VB1.CCTV.Schouwen.uit, VB1.CCTV.Schouwen.schouwen, VB1.CCTV.Schouwen.schouwenHuidig,
-                         VB1.CCTV.Richting.mee, VB1.CCTV.Richting.tegen,
-                         VB1.CCTV.Selectie.c_links, VB1.CCTV.Selectie.c_rechts,
-                         VB1.HoogteDetectieWaarschuwing.Sensor.u_aan, VB1.HoogteDetectieRood.Sensor.u_aan,
-                         not VB1.VRI.Stand.uit, not VB1.AB.Beweging.geen, VB1.HPKA1.SensorOpen.aan or VB1.HPKC1.SensorOpen.aan);
+input bool I_VB1_CCTV_uit, I_VB1_CCTV_schouwen, I_VB1_CCTV_Schouwen_huidig, I_VB1_CCTV_mee, I_VB1_CCTV_tegen, I_VB1_CCTV_links, I_VB1_CCTV_rechts;
+input bool I_VB1_HDW, I_VB1_HDR, I_VB1_VRI_uit, I_VB1_AB_geen, I_VB1_HPKA1, I_VB1_HPKC1;
+VB1_unit_CCTV: Unit_CCTV1(I_VB1_CCTV_uit, I_VB1_CCTV_schouwen, I_VB1_CCTV_Schouwen_huidig,
+                          I_VB1_CCTV_mee, I_VB1_CCTV_tegen,
+                          I_VB1_CCTV_links, I_VB1_CCTV_rechts,
+                          I_VB1_HDW, I_VB1_HDR,
+                          not I_VB1_VRI_uit, not I_VB1_AB_geen, I_VB1_HPKA1 or I_VB1_HPKC1);
 
+input bool I_VB2_CCTV_uit, I_VB2_CCTV_schouwen, I_VB2_CCTV_Schouwen_huidig, I_VB2_CCTV_mee, I_VB2_CCTV_tegen, I_VB2_CCTV_links, I_VB2_CCTV_rechts;
+input bool I_VB2_VRI_uit, I_VB2_AB_geen, I_VB2_HPKA1, I_VB2_HPKC1;
 group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
-                             richtingMee, richtingTegen;
-                    controllable c_selectieRechts, c_selectieLinks;
-                    alg bool VRIAan, ABAan, HPKAan):
+                              richtingMee, richtingTegen,
+                              selectieRechts, selectieLinks,
+                              VRIAan, ABAan, HPKAan):
 
   // Inputs
   plant GewensteStandSchouwen:
@@ -383,20 +408,19 @@ group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   end
 
   plant GewensteSelectie:
-    controllable c_klaar;
-    monitor c_selectieRechts, c_selectieLinks;
+    uncontrollable u_rechts, u_links, u_klaar;
     location geen:
       initial; marked;
-      edge c_selectieRechts goto rechts;
-      edge c_selectieLinks goto links;
+      edge u_rechts when selectieRechts goto rechts;
+      edge u_links when selectieLinks goto links;
     location rechts:
       marked;
-      edge c_klaar goto geen;
-      edge c_selectieLinks goto links;
+      edge u_klaar when not selectieRechts and not selectieLinks goto geen;
+      edge u_links when selectieLinks goto links;
     location links:
       marked;
-      edge c_klaar goto geen;
-      edge c_selectieRechts goto rechts;
+      edge u_klaar when not selectieRechts and not selectieLinks goto geen;
+      edge u_rechts when selectieRechts goto rechts;
   end
 
   plant VRISensor:
@@ -562,27 +586,27 @@ group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   requirement Timer.c_herstart needs not HuidigeStandSchouwen.uit;
 
   requirement Links:
-    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    monitor GewensteSelectie.u_links, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
     location loc1:
       initial; marked;
-      edge c_selectieLinks when not HuidigeSelectie.toerit goto loc2;
-      edge HuidigeSelectie.c_links, GewensteSelectie.c_klaar;
+      edge GewensteSelectie.u_links when not HuidigeSelectie.toerit goto loc2;
+      edge HuidigeSelectie.c_links, GewensteSelectie.u_klaar;
     location loc2:
       edge HuidigeSelectie.c_links goto loc3;
     location loc3:
-      edge GewensteSelectie.c_klaar, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+      edge GewensteSelectie.u_klaar, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
   end
 
   requirement Rechts:
-    monitor c_selectieLinks, c_selectieRechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
+    monitor GewensteSelectie.u_links, GewensteSelectie.u_rechts, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig;
     location loc1:
       initial; marked;
-      edge c_selectieRechts when not HuidigeSelectie.uitgang goto loc2;
-      edge HuidigeSelectie.c_rechts, GewensteSelectie.c_klaar;
+      edge GewensteSelectie.u_rechts when not HuidigeSelectie.uitgang goto loc2;
+      edge HuidigeSelectie.c_rechts, GewensteSelectie.u_klaar;
     location loc2:
       edge HuidigeSelectie.c_rechts goto loc3;
     location loc3:
-      edge GewensteSelectie.c_klaar, c_selectieLinks, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
+      edge GewensteSelectie.u_klaar, GewensteSelectie.u_links, GewensteStandSchouwen.u_schouwen, GewensteStandSchouwen.u_schouwenHuidig goto loc1;
   end
 
   requirement AlterneerTimer:
@@ -626,11 +650,11 @@ group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
 
   requirement Stop:
     monitor VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan,
-    GewensteStandSchouwen.u_stop, c_selectieLinks, c_selectieRechts;
+    GewensteStandSchouwen.u_stop, GewensteSelectie.u_links, GewensteSelectie.u_rechts;
     location loc1:
       initial; marked;
       edge VRISensor.u_aan, ABSensor.u_aan, HPKSensor.u_aan when not HuidigeStandSchouwen.uit goto loc2;
-      edge c_selectieLinks, c_selectieRechts when not HuidigeStandSchouwen.uit goto loc2;
+      edge GewensteSelectie.u_links, GewensteSelectie.u_rechts when not HuidigeStandSchouwen.uit goto loc2;
       edge GewensteStandSchouwen.u_stop when not HuidigeStandSchouwen.uit goto loc2;
     location loc2:
       edge HuidigeStandSchouwen.c_stop goto loc1;
@@ -655,7 +679,7 @@ group def Unit_CCTV2(alg bool schouwenUit, schouwenAan, schouwenAanHuidig,
   end
 end
 
-VB2_unit_CCTV: Unit_CCTV2(VB2.CCTV.Schouwen.uit, VB2.CCTV.Schouwen.schouwen, VB2.CCTV.Schouwen.schouwenHuidig,
-                         VB2.CCTV.Richting.mee, VB2.CCTV.Richting.tegen,
-                         VB2.CCTV.Selectie.c_rechts, VB2.CCTV.Selectie.c_links,
-                         not VB2.VRI.Stand.uit, not VB2.AB.Beweging.geen, VB2.HPKA1.SensorOpen.aan or VB2.HPKC1.SensorOpen.aan);
+VB2_unit_CCTV: Unit_CCTV2(I_VB2_CCTV_uit, I_VB2_CCTV_schouwen, I_VB2_CCTV_Schouwen_huidig,
+                          I_VB2_CCTV_mee, I_VB2_CCTV_tegen,
+                          I_VB2_CCTV_rechts, I_VB2_CCTV_links,
+                          not I_VB2_VRI_uit, not I_VB2_AB_geen, I_VB2_HPKA1 or I_VB2_HPKC1);
